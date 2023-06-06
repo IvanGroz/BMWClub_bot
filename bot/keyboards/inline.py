@@ -6,3 +6,4 @@ async def start_reg_message() -> InlineKeyboardMarkup:
     kb.row()
     kb.insert(InlineKeyboardButton("Зарегистрироваться", callback_data='register'))
     return kb
+
