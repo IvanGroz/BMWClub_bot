@@ -1,5 +1,4 @@
 from aiogram.types import *
-from aiogram.utils import *
 
 
 async def start_reg_message() -> InlineKeyboardMarkup:
