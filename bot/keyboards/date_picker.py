@@ -5,7 +5,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 from aiogram.types import CallbackQuery
 
-# setting callback_data prefix and parts
+
 date_picker_callback = CallbackData('date_picker', 'act', 'year', 'month', 'day')
 ignore_callback = date_picker_callback.new("IGNORE", -1, -1, -1)  # применяется для кнопок без ответа
 
