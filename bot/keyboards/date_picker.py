@@ -5,13 +5,12 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 from aiogram.types import CallbackQuery
 
-
 date_picker_callback = CallbackData('date_picker', 'act', 'year', 'month', 'day')
 ignore_callback = date_picker_callback.new("IGNORE", -1, -1, -1)  # применяется для кнопок без ответа
 
 
 class DatePicker:
-    months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    months = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
 
     def __init__(self, year: int = datetime.now().year, month: int = datetime.now().month):
         self.year = year
@@ -21,10 +20,10 @@ class DatePicker:
             self,
             year: int = datetime.now().year - 20  # 20 для того чтобы выбор года начинался для человека от 18 лет
     ) -> InlineKeyboardMarkup:
-        inline_kb = InlineKeyboardMarkup(row_width=8)
+        inline_kb = InlineKeyboardMarkup(row_width=6)
         # first row - years
         inline_kb.row()
-        for value in range(year - 5, year + 3):
+        for value in range(year - 3, year + 3):
             inline_kb.insert(InlineKeyboardButton(
                 str(value),
                 callback_data=date_picker_callback.new("SET-YEAR", value, -1, -1)
@@ -79,7 +78,7 @@ class DatePicker:
             callback_data=date_picker_callback.new("SET-YEAR", year, -1, -1)
         ))
         inline_kb.row()
-        for day in ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]:
+        for day in ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]:
             inline_kb.insert(InlineKeyboardButton(day, callback_data=ignore_callback))
 
         month_calendar = calendar.monthcalendar(year, month)
@@ -109,8 +108,10 @@ class DatePicker:
         if callback_data['act'] == "START":
             await query.message.edit_reply_markup(await self.start_picker(int(callback_data['year'])))
         if callback_data['act'] == "SET-MONTH":
-            await query.message.edit_reply_markup(await self._get_days_kb(int(callback_data['year']), int(callback_data['month'])))
+            await query.message.edit_reply_markup(
+                await self._get_days_kb(int(callback_data['year']), int(callback_data['month'])))
         if callback_data['act'] == "SET-DAY":
             await query.message.delete_reply_markup()  # удаление инлайн-клавиатуры
-            return_data = True, datetime(int(callback_data['year']), int(callback_data['month']), int(callback_data['day']))
+            return_data = True, datetime(int(callback_data['year']), int(callback_data['month']),
+                                         int(callback_data['day']))
         return return_data
