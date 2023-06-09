@@ -121,8 +121,8 @@ async def number_plate_input(message: Message, state: FSMContext):
     if await permanent_menu(message, state):
         return
     bot: Bot = message.bot
-    if (re.fullmatch(r'[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}-\d{2}', message.text) is not None) or (
-            re.fullmatch(r'[ABEKMHOPCTYX]\d{3}[ABEKMHOPCTYX]{2}-\d{2}', message.text) is not None):
+    if (re.fullmatch(r'[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}-\d{2,3}', message.text) is not None) or (
+            re.fullmatch(r'[ABEKMHOPCTYX]\d{3}[ABEKMHOPCTYX]{2}-\d{2,3}', message.text) is not None):
         async with state.proxy() as data:
             data['number_plate'] = message.text
         await state.set_state(RegState.NEUTRAL)
@@ -177,6 +177,12 @@ async def wanna_be_partner_input(message: Message, state: FSMContext):
     bot: Bot = message.bot
     async with state.proxy() as data:
         data['partner'] = message.text
+        await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
+                               'Новый участник хочет стать партнером\!\n Это [{} {} {}](tg://user?id={})\nВ качестве '
+                               'данных о себе как о партнёре указал:\n{}'.format(
+                                   data['name'], data['surname'], data['patronymic'], data['user_id'], message.text),
+                               'MarkdownV2',
+                               message_thread_id=Env.NEW_PARTNER_THREAD_ID)
     await state.set_state(RegState.NEUTRAL)
     await bot.send_message(message.chat.id, st.end_registration, reply_markup=await kb.end_registration())
 
