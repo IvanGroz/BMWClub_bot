@@ -7,7 +7,7 @@ from aiogram.types import *
 
 import bot.keyboards as kb
 import bot.strings as st
-from bot.database import database as db
+from bot.database import database as conn
 from bot.env import Env
 from bot.filters.main import IsNotRegistered
 from bot.keyboards.date_picker import date_picker_callback, DatePicker
@@ -201,7 +201,7 @@ async def no_partner(callback_query: CallbackQuery, state: FSMContext):
 async def end_registration(callback_query: CallbackQuery, state: FSMContext):
     bot: Bot = callback_query.bot
     await bot.answer_callback_query(callback_query.id)
-    await db.add_item(state)
+    await conn.add_item(state)
     async with state.proxy() as data:
         await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
                                "Новый участник\! Это [{} {} {}](tg://user?id={})".format(data['name'],

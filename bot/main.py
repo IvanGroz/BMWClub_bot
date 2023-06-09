@@ -6,18 +6,18 @@ from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.utils import executor
 
-from bot.database.models import register_models
+from bot.database.methods.birthday_polling import start_process_db_polling
 from bot.env import Env
 from bot.filters import register_all_filters
 from bot.handlers.main import register_all_handlers
-from bot.database import database as db
+from bot.database import database as conn
 
 
 async def __on_start_up(dp: Dispatcher) -> None:
-    await db.start()
+    conn.start()
     register_all_filters(dp)
     register_all_handlers(dp)
-    register_models()
+    await start_process_db_polling(dp.bot)
 
 
 def start_bot():
