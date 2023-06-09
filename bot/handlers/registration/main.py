@@ -196,6 +196,13 @@ async def end_registration(callback_query: CallbackQuery, state: FSMContext):
     bot: Bot = callback_query.bot
     await bot.answer_callback_query(callback_query.id)
     await db.add_item(state)
+    async with state.proxy() as data:
+        await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
+                               "Новый участник\! Это [{} {} {}](tg://user?id={})".format(data['name'],
+                                                                                         data['surname'],
+                                                                                         data['patronymic'],
+                                                                                         data['user_id']),
+                               'MarkdownV2', message_thread_id=Env.NEW_MEMBER_THREAD_ID)
     await state.finish()
     await bot.send_message(callback_query.from_user.id, st.finish_registration, reply_markup=ReplyKeyboardRemove())
 
