@@ -1,11 +1,10 @@
-from aiogram import Dispatcher, Bot
-from aiogram.dispatcher import FSMContext
-from aiogram.types import *
+from aiogram import Bot
 
+from bot.database import database as db
 from bot.filters.main import *
 from bot.keyboards import birthday_slider
 from bot.keyboards.birthday_slider import BirthdaySlider
-from bot.database import database as db
+from bot.misc.formatting import format_birthday
 
 slider: BirthdaySlider
 
@@ -13,17 +12,10 @@ slider: BirthdaySlider
 async def birthday_slider_start(message: Message):
     bot: Bot = message.bot
     birthdays = await db.get_users_birthday(14)
-    text: str = 'В эту дату день рождения у:'
-    for birthday in birthdays[0][0]:  # [номер дня][0 - пользователи , 1 - дата (месяц и день)]
-        text += '\n[{} {} {}](tg://user?id={})\, исполняется {} лет '.format(birthday[1],
-                                                                             birthday[2],
-                                                                             birthday[3],
-                                                                             birthday[0],
-                                                                             birthday[4])
-        global slider
-        slider = BirthdaySlider(birthdays)
-    await bot.send_message(message.chat.id, text, 'MarkdownV2',
-                           reply_markup=await slider.get_slider_markup())
+    text: str = await format_birthday(birthdays, 0)
+    global slider
+    slider = BirthdaySlider(birthdays)
+    await bot.send_message(message.chat.id, text, 'MarkdownV2', reply_markup=await slider.get_slider_markup())
 
 
 async def birthday_slider_callback(callback_query: CallbackQuery, callback_data: dict, state: FSMContext):

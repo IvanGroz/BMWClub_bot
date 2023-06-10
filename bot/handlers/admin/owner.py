@@ -4,11 +4,12 @@ from aiogram.types import *
 import bot.keyboards as kb
 from bot.env import Env
 from bot.filters.main import *
+from bot.database import database as db
 
 
 async def about_input(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    message.get_args().split()
+    users = db.find_user(message.get_args().split())
 
 
 def get_owner_handlers(dp: Dispatcher) -> None:

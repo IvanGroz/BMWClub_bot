@@ -5,7 +5,7 @@ import asyncio
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and setting
 from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
-from aiogram.types import BotCommand, BotCommandScope, BotCommandScopeChat
+from aiogram.types import BotCommand, BotCommandScope, BotCommandScopeChat, ParseMode
 from aiogram.utils import executor
 
 from bot.commands import register_all_commands
@@ -25,6 +25,6 @@ async def __on_start_up(dp: Dispatcher) -> None:
 
 
 def start_bot():
-    bot: Bot = Bot(token=Env.TOKEN)
+    bot: Bot = Bot(token=Env.TOKEN, parse_mode=ParseMode.MARKDOWN_V2)
     dp = Dispatcher(bot, storage=MemoryStorage())
     executor.start_polling(dp, skip_updates=True, on_startup=__on_start_up)

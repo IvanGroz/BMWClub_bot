@@ -88,3 +88,19 @@ def get_users_birthday_notif_on() -> tuple:
         cur.execute(
             "SELECT user_id from users where birthday_notif = TRUE and (is_plus_user = TRUE or is_admin = TRUE or is_owner=TRUE)")
         return cur.fetchall()
+
+
+def set_new_admin(user_id):
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET is_admin = TRUE WHERE user_id = {}".format(user_id))
+
+
+def find_user(data_fio: list):
+    sql_command: str = "select user_id,surname,first_name,patronymic from users where surname = '{}'".format(data_fio[0])
+    if len(data_fio) > 1:
+        sql_command += "and first_name = '{}'".format(data_fio[1])
+        if len(data_fio) > 2:
+            sql_command += "and patronymic = '{}'".format(data_fio[2])
+    with conn.cursor() as cur:
+        cur.execute(sql_command)
+        return cur.fetchall()
