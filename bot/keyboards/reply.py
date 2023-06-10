@@ -14,3 +14,11 @@ async def registration_menu() -> ReplyKeyboardMarkup:
     kb.add(KeyboardButton('Получить помощь по регистрации'))
     kb.add(KeyboardButton('Допустил ошибку/Начать заново'))
     return kb
+
+
+async def regular_user_start_menu() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True)
+    kb.row()
+    kb.add(KeyboardButton('Помощь'))
+    kb.add(KeyboardButton('Мероприятия клуба'))
+    return kb

@@ -77,7 +77,7 @@ async def get_users_birthday(days: int) -> list:
                 " from users where date_part('day',birthday) = {} "
                 "and date_part('month',birthday) = {}".format(
                     date.strftime('%d'), date.strftime('%m')))
-            users: tuple = cur.fetchall()
+            users: tuple = (cur.fetchall(), date.strftime('%m-%d'))
             date += datetime.timedelta(days=1)
             arr_users.append(users)
         return arr_users

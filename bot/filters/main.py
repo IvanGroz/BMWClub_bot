@@ -28,10 +28,17 @@ class IsPlusUser(Filter):
 
 
 class IsNotRegistered(Filter):
-    key = "is_registered"
+    key = "is_not_registered"
 
     async def check(self, message: Message) -> bool:
         return not (await is_registered(message.from_user.id))
+
+
+class IsRegularUser(Filter):
+    key = "is_regular_user"
+
+    async def check(self, message: Message) -> bool:
+        return await is_registered(message.from_user.id)
 
 
 class IsNotificationGroupCallback(Filter):
@@ -39,6 +46,16 @@ class IsNotificationGroupCallback(Filter):
 
     async def check(self, callback: CallbackQuery) -> bool:
         if callback.message.chat.id == Env.NOTIFICATION_SUPER_GROUP_ID:
+            return True
+        else:
+            return False
+
+
+class IsNotificationGroupMessage(Filter):
+    key = "is_notification_group_msg"
+
+    async def check(self, msg: Message) -> bool:
+        if msg.chat.id == Env.NOTIFICATION_SUPER_GROUP_ID:
             return True
         else:
             return False

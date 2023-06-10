@@ -49,6 +49,7 @@ async def help_question_input(message: Message, state: FSMContext):
     await bot.send_message(message.chat.id, st.registration_help_answer)
     await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
                            reply_markup=await kb.question_answer(message.from_user.id))
+    
     await state.finish()
 
 
