@@ -16,7 +16,7 @@ def start():
         conn.set_session(autocommit=True)
     except Exception as e:
         # в случае сбоя подключения будет выведено сообщение в STDOUT
-        print('Can`t establish connection to database:' + e)
+        print('Can`t establish connection to database:' + str(e))
 
 
 async def add_item(state: FSMContext):
@@ -63,20 +63,28 @@ async def is_registered(user_id_par) -> bool:
         return cur.fetchone()[0]
 
 
-def get_today_birthday() -> tuple:
+async def get_users_birthday(days: int) -> list:
+    """Кол-во дней означает для скольких дней от сегодняшнего дня должно быть показано ДР
+
+    Значение 1 - означает только сегодняшнюю дату
+    """
     with conn.cursor() as cur:
         date = datetime.date.today()
-        cur.execute(
-            "SELECT user_id,surname,first_name,patronymic,cast(date_part('year',age(birthday)) AS INTEGER)"
-            " from users where date_part('day',birthday) = {} "
-            "and date_part('month',birthday) = {}".format(
-                date.strftime('%d'), date.strftime('%m')))
-        users = cur.fetchall()
-        print(users)
-        return users
+        arr_users = []
+        for i in range(days):
+            cur.execute(
+                "SELECT user_id,surname,first_name,patronymic,cast(date_part('year',age(birthday)) AS INTEGER)"
+                " from users where date_part('day',birthday) = {} "
+                "and date_part('month',birthday) = {}".format(
+                    date.strftime('%d'), date.strftime('%m')))
+            users: tuple = cur.fetchall()
+            date += datetime.timedelta(days=1)
+            arr_users.append(users)
+        return arr_users
 
 
 def get_users_birthday_notif_on() -> tuple:
     with conn.cursor() as cur:
-        cur.execute("SELECT user_id from users where birthday_notif = TRUE and (is_plus_user = TRUE or is_admin = TRUE or is_owner=TRUE)")
+        cur.execute(
+            "SELECT user_id from users where birthday_notif = TRUE and (is_plus_user = TRUE or is_admin = TRUE or is_owner=TRUE)")
         return cur.fetchall()
