@@ -135,7 +135,6 @@ def register_admin_handlers(dp: Dispatcher) -> None:
                                        state=CrEv.FINISH_CREATE)
     dp.register_callback_query_handler(restart_create_event, IsAdmin(), lambda l: l.data == "recreate_event",
                                        state=CrEv.FINISH_CREATE)
-    dp.async_task()
     # other admin handlers
     get_notification_handlers(dp)
     get_owner_handlers(dp)
