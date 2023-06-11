@@ -95,12 +95,24 @@ def set_new_admin(user_id):
         cur.execute("UPDATE users SET is_admin = TRUE WHERE user_id = {}".format(user_id))
 
 
+def set_new_plus_user(user_id):
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET is_plus_user = TRUE WHERE user_id = {}".format(user_id))
+
+
 def find_user(data_fio: list):
-    sql_command: str = "select user_id,surname,first_name,patronymic from users where surname = '{}'".format(data_fio[0])
+    sql_command: str = "select user_id,surname,first_name,patronymic from users where "
+    if data_fio[0].lower() != 'нет':
+        sql_command += "surname = '{}'".format(data_fio[0])
     if len(data_fio) > 1:
-        sql_command += "and first_name = '{}'".format(data_fio[1])
+        if data_fio[0].lower() != 'нет':
+            sql_command += "and"
+        if data_fio[1].lower() != 'нет':
+            sql_command += "first_name = '{}' ".format(data_fio[1])
         if len(data_fio) > 2:
-            sql_command += "and patronymic = '{}'".format(data_fio[2])
+            if data_fio[1].lower() != 'нет' and data_fio[0].lower() != 'нет':
+                sql_command += "and"
+            sql_command += "patronymic = '{}'".format(data_fio[2])
     with conn.cursor() as cur:
         cur.execute(sql_command)
         return cur.fetchall()
