@@ -48,3 +48,11 @@ async def question_delete() -> InlineKeyboardMarkup:
     kb.insert(InlineKeyboardButton("Удалить вопрос",
                                    callback_data='delete_question'))
     return kb
+
+
+async def end_create_event() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.row()
+    kb.insert(InlineKeyboardButton("Все правильно!", callback_data="correct_event"))
+    kb.insert(InlineKeyboardButton("Создать заново!", callback_data='recreate_event'))
+    return kb

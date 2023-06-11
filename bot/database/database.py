@@ -1,4 +1,3 @@
-# todo: Database engine тут должен быть класс Database
 import datetime
 
 import psycopg2
@@ -19,7 +18,7 @@ def start():
         print('Can`t establish connection to database:' + str(e))
 
 
-async def add_item(state: FSMContext):
+async def add_user(state: FSMContext):
     async with state.proxy() as data:
         birthday: datetime.datetime = data['birthday']
         sql_insert = "select insert_user_data({},'{}','{}','{}','{}','{}','{}','{}','{}','{}')". \
@@ -116,3 +115,16 @@ def find_user(data_fio: list):
     with conn.cursor() as cur:
         cur.execute(sql_command)
         return cur.fetchall()
+
+
+async def add_event(state: FSMContext):
+    async with state.proxy() as data:
+        date: datetime.datetime = data['date']
+        sql_insert = "INSERT INTO events(title, date, time, location, description) VALUES ('{}','{}','{}','{}','{}')". \
+            format(data['title'],
+                   date.strftime('%Y-%m-%d'),
+                   data['time'],
+                   data['location'],
+                   data['description'])
+        with conn.cursor() as cur:
+            cur.execute(sql_insert)

@@ -15,3 +15,12 @@ class RegisterUser(StatesGroup):
     INSERT_PARTNER_BUSINESS: Final = State()  # Состояние при котором принимается Информация о партнерстве
     NEUTRAL: Final = State()
     HELP_QUESTION: Final = State()
+
+
+class CreateEvent(StatesGroup):
+    INSERT_TITLE: Final = State()  # Состояние при котором принимается заголовок события
+    INSERT_DESCRIPTION: Final = State()  # Состояние при котором принимается описание
+    INSERT_LOCATION: Final = State()  # Состояние при котором принимается место проведения
+    INSERT_DATA: Final = State()  # Состояние при котором принимается дата проведения
+    INSERT_TIME: Final = State()  # Состояние при котором принимается время проведения
+    FINISH_CREATE:Final = State() # Состояние при котором должно завершаться создание мероприятия

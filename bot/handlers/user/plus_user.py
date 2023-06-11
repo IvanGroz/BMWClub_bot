@@ -24,6 +24,7 @@ async def birthday_slider_callback(callback_query: CallbackQuery, callback_data:
 
 def register_user_plus_handlers(dp: Dispatcher) -> None:
     # handlers
-    dp.register_message_handler(birthday_slider_start, IsPlusUser(), content_types=['text'], text='14')
+    dp.register_message_handler(birthday_slider_start, IsPlusUser(), content_types=['text'],
+                                text='Показать ДР на ближайшие 14 дней')
     # callbacks
     dp.register_callback_query_handler(birthday_slider_callback, IsPlusUser(), birthday_slider.slider_callback.filter())

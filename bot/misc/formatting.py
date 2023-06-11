@@ -1,3 +1,6 @@
+import datetime
+
+
 async def format_birthday(birthdays, day) -> str:
     text: str = 'В эту дату\, день рождения у:'
     if len(birthdays[day][0]) != 0:
@@ -24,3 +27,11 @@ async def format_founded_users(users: list, command: str):
                                                                 user[0])
         users_fio_id[str(user[0])] = user_link
     return text, users_fio_id
+
+
+async def formant_event(title: str, date:datetime.datetime, time, location: str, description: str):
+    text: str = title + '\n'
+    text += '\nЛокация: ' + location
+    text += '\n\nВремя: ' + date.strftime('%m/%d') + ',' + time
+    text += '\n\nОписание:\n' + description
+    return text

@@ -10,7 +10,7 @@ class IsAdmin(Filter):
     key = "is_admin"
 
     async def check(self, message: Message) -> bool:
-        return await is_admin(message.from_user.id)
+        return await is_admin(message.from_user.id) or await is_owner(message.from_user.id)
 
 
 class IsOwner(Filter):
@@ -24,7 +24,8 @@ class IsPlusUser(Filter):
     key = "is_plus_user"
 
     async def check(self, message: Message) -> bool:
-        return await is_plus_user(message.from_user.id)
+        return await is_plus_user(message.from_user.id) or await is_admin(message.from_user.id) or await is_owner(
+            message.from_user.id)
 
 
 class IsNotRegistered(Filter):

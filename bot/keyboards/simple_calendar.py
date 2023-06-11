@@ -5,34 +5,26 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.callback_data import CallbackData
 from aiogram.types import CallbackQuery
 
-
 # setting callback_data prefix and parts
 simple_calendar_callback = CallbackData('simple_calendar', 'act', 'year', 'month', 'day')
 
 
 class SimpleCalendar:
 
-    async def start_calendar(
-        self,
-        year: int = datetime.now().year,
-        month: int = datetime.now().month
-    ) -> InlineKeyboardMarkup:
-        """
-        Creates an inline keyboard with the provided year and month
-        :param int year: Year to use in the calendar, if None the current year is used.
-        :param int month: Month to use in the calendar, if None the current month is used.
-        :return: Returns InlineKeyboardMarkup object with the calendar.
-        """
+    async def start_calendar(self, year: int = datetime.now().year,
+                             month: int = datetime.now().month) -> InlineKeyboardMarkup:
         inline_kb = InlineKeyboardMarkup(row_width=7)
         ignore_callback = simple_calendar_callback.new("IGNORE", year, month, 0)  # for buttons with no answer
         # First row - Month and Year
+        month_name = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+
         inline_kb.row()
         inline_kb.insert(InlineKeyboardButton(
             "<<",
             callback_data=simple_calendar_callback.new("PREV-YEAR", year, month, 1)
         ))
         inline_kb.insert(InlineKeyboardButton(
-            f'{calendar.month_name[month]} {str(year)}',
+            f'{month_name[month]} {str(year)}',
             callback_data=ignore_callback
         ))
         inline_kb.insert(InlineKeyboardButton(
@@ -41,7 +33,7 @@ class SimpleCalendar:
         ))
         # Second row - Week Days
         inline_kb.row()
-        for day in ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"]:
+        for day in ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"]:
             inline_kb.insert(InlineKeyboardButton(day, callback_data=ignore_callback))
 
         # Calendar rows - Days of month
@@ -84,7 +76,7 @@ class SimpleCalendar:
             await query.answer(cache_time=60)
         # user picked a day button, return date
         if data['act'] == "DAY":
-            await query.message.delete_reply_markup()   # removing inline keyboard
+            await query.message.delete_reply_markup()  # removing inline keyboard
             return_data = True, datetime(int(data['year']), int(data['month']), int(data['day']))
         # user navigates to previous year, editing message with new calendar
         if data['act'] == "PREV-YEAR":

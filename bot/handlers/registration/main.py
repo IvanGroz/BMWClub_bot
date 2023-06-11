@@ -16,8 +16,6 @@ from bot.states import RegisterUser as RegState
 
 async def cmd_start(message: Message):
     bot: Bot = message.bot
-    # isADM: bool = await db.is_admin(message.from_user.id)
-    # await bot.send_message(message.chat.id, 'Это админ:{}'.format(isADM))
     await bot.send_message(message.chat.id, st.start_response, reply_markup=await kb.start_reg_message())
 
 
@@ -49,7 +47,7 @@ async def help_question_input(message: Message, state: FSMContext):
     await bot.send_message(message.chat.id, st.registration_help_answer)
     await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
                            reply_markup=await kb.question_answer(message.from_user.id))
-    
+
     await state.finish()
 
 
@@ -202,7 +200,7 @@ async def no_partner(callback_query: CallbackQuery, state: FSMContext):
 async def end_registration(callback_query: CallbackQuery, state: FSMContext):
     bot: Bot = callback_query.bot
     await bot.answer_callback_query(callback_query.id)
-    await conn.add_item(state)
+    await conn.add_user(state)
     async with state.proxy() as data:
         await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
                                "Новый участник\! Это [{} {} {}](tg://user?id={})".format(data['name'],
