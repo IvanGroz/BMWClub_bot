@@ -1,11 +1,13 @@
 from aiogram import Dispatcher
-from aiogram.types import BotCommand, BotCommandScopeChat
+from aiogram.types import  *
 
 from bot.env import Env
 
 
 async def register_all_commands(dp: Dispatcher):
-    await dp.bot.set_my_commands([BotCommand('set_plus_user',
-                                             "Назначение пользователя с расширенным функционалом "
-                                             "(Аргументы команды: [Фамилия] [Имя] [Отчество])")],
+    await dp.bot.set_my_commands([BotCommand('set_new_plus_user', "Назначение пользователя с расширенным функционалом "),
+                                  BotCommand('set_new_admin', "Назначение пользователя админом ")
+                                  ],
                                  BotCommandScopeChat(Env.NOTIFICATION_SUPER_GROUP_ID))
+    await dp.bot.set_my_commands([BotCommand('main_menu', "Возврат в главное меню")],
+                                 BotCommandScopeAllPrivateChats())

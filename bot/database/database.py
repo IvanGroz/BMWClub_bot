@@ -58,8 +58,17 @@ async def is_owner(user_id_par) -> bool:
 
 async def is_registered(user_id_par) -> bool:
     with conn.cursor() as cur:
-        cur.execute('SELECT exists(select user_id from users where user_id = {})'.format(user_id_par))
+        cur.execute('select user_id from users where user_id = {}'.format(user_id_par))
         return cur.fetchone()[0]
+
+
+async def get_user_by_id(user_id):
+    with conn.cursor() as cur:
+        cur.execute('SELECT user_id,surname, first_name, patronymic, birthday, '
+                    'phone_number,about,partner,is_admin, is_plus_user,'
+                    ' c.number_plate, c.car_photo_file_id FROM users join car c on c.id = users.car_id'
+                    ' where user_id = {}'.format(user_id))
+        return cur.fetchone()
 
 
 async def get_users_birthday(days: int) -> list:
@@ -89,6 +98,13 @@ def get_users_birthday_notif_on() -> tuple:
         return cur.fetchall()
 
 
+def get_user_birthday_notif_on(user_id):
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT birthday_notif from users where user_id = {}".format(user_id))
+        return cur.fetchall()
+
+
 def set_new_admin(user_id):
     with conn.cursor() as cur:
         cur.execute("UPDATE users SET is_admin = TRUE WHERE user_id = {}".format(user_id))
@@ -105,12 +121,12 @@ def find_user(data_fio: list):
         sql_command += "surname = '{}'".format(data_fio[0])
     if len(data_fio) > 1:
         if data_fio[0].lower() != 'нет':
-            sql_command += "and"
+            sql_command += " and "
         if data_fio[1].lower() != 'нет':
             sql_command += "first_name = '{}' ".format(data_fio[1])
         if len(data_fio) > 2:
             if data_fio[1].lower() != 'нет' and data_fio[0].lower() != 'нет':
-                sql_command += "and"
+                sql_command += " and "
             sql_command += "patronymic = '{}'".format(data_fio[2])
     with conn.cursor() as cur:
         cur.execute(sql_command)
@@ -128,3 +144,56 @@ async def add_event(state: FSMContext):
                    data['description'])
         with conn.cursor() as cur:
             cur.execute(sql_insert)
+
+
+async def get_list_event():
+    sql_command: str
+    with conn.cursor() as cur:
+        cur.execute("SELECT * from events ORDER BY date ASC")
+        return cur.fetchall()
+
+
+async def get_tomorrow_event():
+    date = datetime.date.today() + datetime.timedelta(days=1)
+    with conn.cursor() as cur:
+        cur.execute("SELECT * from events WHERE date = '{}'".format(date.strftime('%Y-%m-%d')))
+        return cur.fetchall()
+
+
+def delete_event(event_id):
+    with conn.cursor() as cur:
+        cur.execute("DELETE  FROM events WHERE id ={}".format(event_id))
+
+
+def edit_event(event_id, location=None, date=None, time=None, description=None, title=None):
+    sql_text = "UPDATE events SET "
+    if location is not None:
+        sql_text += "location = '{}'".format(location)
+    if date is not None:
+        sql_text += "date = '{}',time = '{}'".format(date, time)
+    if title is not None:
+        sql_text += "title = '{}',description = '{}'".format(title, description)
+    sql_text += "WHERE id = {}".format(event_id)
+    with conn.cursor() as cur:
+        cur.execute(sql_text)
+
+
+def get_users_event_notif_on() -> tuple:
+    with conn.cursor() as cur:
+        cur.execute("SELECT user_id from users where event_notif = TRUE")
+        return cur.fetchall()
+
+
+def get_user_event_notif_on(user_id):
+    with conn.cursor() as cur:
+        cur.execute("SELECT event_notif from users where user_id = {}".format(user_id))
+        return cur.fetchall()
+
+
+async def any_command(sql: str):
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        try:
+            return cur.fetchall()
+        except ProgrammingError:
+            return None

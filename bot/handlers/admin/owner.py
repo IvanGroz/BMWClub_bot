@@ -6,19 +6,31 @@ from bot.env import Env
 from bot.filters.main import *
 from bot.database import database as db
 from bot.misc.formatting import format_founded_users
+from bot.states import UpdatePermissions as UpPe
 
 founded_users_dict: dict
 
 
 async def choice_new_admin_add(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    users = db.find_user(message.get_args().split())
+    await message.answer('Введите Фамилию Имя Отчество, того человека которого хотите назначить админом '
+                         '(Вводить нужно именно в указанном выше порядке в случае если не известна,'
+                         ' например , фамилия, то пишите: Нет Иван Иванов и т.п.)', ParseMode.HTML)
+    await state.set_state(UpPe.INSERT_ADMIN_FIO)
+
+
+async def input_new_admin_fio(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    users = db.find_user(message.text.split())
     founded = await format_founded_users(users, "/set\_admin\_by\_id\_")
     global founded_users_dict
     founded_users_dict = founded[1]
-    bot_mes = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, founded[0], ParseMode.MARKDOWN_V2)
+    bot_me = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, founded[0], ParseMode.MARKDOWN_V2)
+    await state.set_state(UpPe.CHOICE_ADMIN)
     async with state.proxy() as data:
-        data['list_users_mes'] = bot_mes
+        data['list_users_mes'] = bot_me
+    if len(founded_users_dict) == 0:
+        await state.finish()
 
 
 async def add_admin_link_callback(message: Message, state: FSMContext):
@@ -32,11 +44,17 @@ async def add_admin_link_callback(message: Message, state: FSMContext):
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
     await message.answer('Новый админ\,{}\, добавлен\!'.format(founded_users_dict.get(str(user_id))))
     await bot.delete_message(message.chat.id, message.message_id)
+    await state.finish()
+    await bot.send_message(user_id, 'Поздравляю Вы были назначены администратором бота',
+                           reply_markup=await kb.admin_menu())
 
 
 def get_owner_handlers(dp: Dispatcher) -> None:
     # callbacks
     dp.register_message_handler(choice_new_admin_add, IsOwner(), IsNotificationGroupMessage(),
                                 commands=['set_new_admin'])
+    dp.register_message_handler(input_new_admin_fio, IsOwner(), IsNotificationGroupMessage(),
+                                state=UpPe.INSERT_ADMIN_FIO)
     dp.register_message_handler(add_admin_link_callback, IsOwner(), IsNotificationGroupMessage(),
-                                filters.RegexpCommandsFilter(regexp_commands=['set_admin_by_id_([0-9]*)']))
+                                filters.RegexpCommandsFilter(regexp_commands=['set_admin_by_id_([0-9]*)']),
+                                state=UpPe.CHOICE_ADMIN)

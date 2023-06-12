@@ -28,6 +28,15 @@ class IsPlusUser(Filter):
             message.from_user.id)
 
 
+class IsPlusUserOnly(Filter):
+    key = "is_plus_user_only"
+
+    async def check(self, message: Message) -> bool:
+        return await is_plus_user(message.from_user.id) and not await is_admin(
+            message.from_user.id) and not await is_owner(
+            message.from_user.id)
+
+
 class IsNotRegistered(Filter):
     key = "is_not_registered"
 
@@ -40,6 +49,14 @@ class IsRegularUser(Filter):
 
     async def check(self, message: Message) -> bool:
         return await is_registered(message.from_user.id)
+
+
+class IsRegularUserOnly(Filter):
+    key = "is_regular_user_only"
+
+    async def check(self, message: Message) -> bool:
+        return not (await is_plus_user(message.from_user.id) or await is_admin(message.from_user.id) or await is_owner(
+            message.from_user.id))
 
 
 class IsNotificationGroupCallback(Filter):

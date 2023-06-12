@@ -23,4 +23,26 @@ class CreateEvent(StatesGroup):
     INSERT_LOCATION: Final = State()  # Состояние при котором принимается место проведения
     INSERT_DATA: Final = State()  # Состояние при котором принимается дата проведения
     INSERT_TIME: Final = State()  # Состояние при котором принимается время проведения
-    FINISH_CREATE:Final = State() # Состояние при котором должно завершаться создание мероприятия
+    FINISH_CREATE: Final = State()  # Состояние при котором должно завершаться создание мероприятия
+
+
+class EditEvent(StatesGroup):
+    INSERT_TITLE_DESCRIPTION: Final = State()  # Состояние при котором принимается описание
+    INSERT_LOCATION: Final = State()  # Состояние при котором принимается место проведения
+    INSERT_DATA_TIME: Final = State()  # Состояние при котором принимается время проведения
+
+
+class UpdatePermissions(StatesGroup):
+    INSERT_ADMIN_FIO: Final = State()  # Состояние при котором принимается ФИО админа
+    CHOICE_ADMIN: Final = State()  # Состояние при котором выбираться из найденных
+    INSERT_USER_PLUS_FIO: Final = State()  # Состояние при котором принимается ФИО пользователя
+    CHOICE_USER_PLUS: Final = State()
+
+
+class AdminStates(StatesGroup):
+    INSERT_BROADCAST: Final = State()  # Ввод рассылочного сообщения
+    INSERT_USER_FIO: Final = State()  # Ввод ФИО искомого пользователя
+    CHOICE_USER_INFO: Final = State()
+    EDIT_USER: Final = State()
+    CHOICE_USER_EDIT: Final = State()
+    EDIT_DATA_USER: Final = State()

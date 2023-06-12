@@ -18,6 +18,8 @@ async def format_birthday(birthdays, day) -> str:
 async def format_founded_users(users: list, command: str):
     text: str = 'Список найденных пользователей:'
     users_fio_id: dict = {}
+    if len(users) == 0:
+        text += '\nПуст'
     for user in users:
         user_link = '[{} {} {}](tg://user?id={})'.format(user[1],
                                                          user[2],
@@ -29,9 +31,37 @@ async def format_founded_users(users: list, command: str):
     return text, users_fio_id
 
 
-async def formant_event(title: str, date:datetime.datetime, time, location: str, description: str):
+async def format_event(title: str, date: datetime.datetime, time: datetime.time | str, location: str,
+                       description: str) -> str:
     text: str = title + '\n'
     text += '\nЛокация: ' + location
-    text += '\n\nВремя: ' + date.strftime('%m/%d') + ',' + time
+    text += '\n\nВремя: ' + date.strftime('%m/%d')
+    if type(time) == datetime.time:
+        text += ',' + time.strftime('%H:%M')
+    else:
+        text += ',' + time
     text += '\n\nОписание:\n' + description
     return text
+
+
+async def format_event_extended(title: str, date: datetime.datetime, time: datetime.time | str, location: str,
+                                description: str, amount_users) -> str:
+    text: str = await format_event(title, date, time, location, description)
+    text += '\n Сколько придет человек: ' + str(amount_users)
+    return text
+
+
+async def user_info(user):
+    birthday: datetime.date = user[4]
+
+    text: str = 'Информация о пользователе <a href="tg://user?id={}">{} {} {}</a>:\n' \
+                "\nДата рождения: {}\n" \
+                "\nНомер телефона: {}\n" \
+                "\nРод деятельности:{}\n" \
+                "\nИнформация о партнерстве:{}\n" \
+                "\nАдминистратор:{}\n" \
+                "\nПользователь с расширенным функционалом:{}\n" \
+                "\nГос.номер: {}\n" \
+                "".format(user[0], user[1], user[2], user[3], birthday.strftime('%Y-%m-%d'),
+                          user[5], user[6], user[7], user[8], user[9], user[10])
+    return text, user[11]  # Описание пользователя и фото авто

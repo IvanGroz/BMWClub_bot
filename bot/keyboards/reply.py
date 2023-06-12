@@ -22,3 +22,46 @@ async def regular_user_start_menu() -> ReplyKeyboardMarkup:
     kb.add(KeyboardButton('Помощь'))
     kb.add(KeyboardButton('Мероприятия клуба'))
     return kb
+
+
+async def admin_menu() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True)
+    kb.row(KeyboardButton('Дни рождения'), KeyboardButton('Мероприятия клуба'))
+    kb.row(KeyboardButton('Инструкции'), KeyboardButton('Рассылка'))
+    kb.row(KeyboardButton('Информация о пользователях'), KeyboardButton('Редактировать пользователя'))
+    return kb
+
+
+async def birthday_menu(notif_on) -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.row(KeyboardButton('Показать ДР на ближайшие 14 дней'),
+           KeyboardButton('Отключить уведомления о ДР' if notif_on[0] else 'Включить уведомления о ДР'))
+    return kb
+
+
+async def event_admin_menu(notif_on) -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.row(KeyboardButton('Ближайшие мероприятия'),
+           KeyboardButton('Отключить уведомления' if notif_on[0] else 'Включить уведомления'))
+    kb.row(KeyboardButton('Создать мероприятие'))
+    return kb
+
+
+async def event_plus_user_menu(notif_on) -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True)
+    kb.row(KeyboardButton('Дни рождения'), KeyboardButton('Мероприятия клуба'))
+    return kb
+
+
+async def event_menu(notif_on) -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.row(KeyboardButton('Ближайшие мероприятия'),
+           KeyboardButton('Отключить уведомления' if notif_on[0] else 'Включить уведомления'))
+    return kb
+
+
+async def users_info_menu() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True)
+    kb.row(KeyboardButton('Получить данные о всех пользователях'),
+           KeyboardButton('Найти пользователя по ФИО'))
+    return kb

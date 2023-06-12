@@ -56,3 +56,16 @@ async def end_create_event() -> InlineKeyboardMarkup:
     kb.insert(InlineKeyboardButton("Все правильно!", callback_data="correct_event"))
     kb.insert(InlineKeyboardButton("Создать заново!", callback_data='recreate_event'))
     return kb
+
+
+async def edit_event() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardMarkup(row_width=2)
+    kb.row()
+    kb.insert(InlineKeyboardButton("Локацию", callback_data="location_edit"))
+    kb.insert(InlineKeyboardButton("Дату и время", callback_data='data/time_edit'))
+    kb.row()
+    kb.insert(InlineKeyboardButton("Название  и описание", callback_data="title_and_desc_edit"))
+    kb.insert(InlineKeyboardButton("Удалить мероприятие", callback_data='delete_event'))
+    kb.row()
+    kb.insert(InlineKeyboardButton("Отмена", callback_data='cancel_event'))
+    return kb

@@ -8,6 +8,7 @@ from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.types import BotCommand, BotCommandScope, BotCommandScopeChat, ParseMode
 from aiogram.utils import executor
 
+import bot.database.methods.import_in_file
 from bot.commands import register_all_commands
 from bot.database.methods.database_polling import start_process_db_polling
 from bot.env import Env
