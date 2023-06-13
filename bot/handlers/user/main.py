@@ -84,3 +84,4 @@ def register_user_handlers(dp: Dispatcher) -> None:
     dp.register_callback_query_handler(event_slider_callback, IsRegularUserOrPlusUser(),
                                        event_slider_callback_data.filter())
     # todo заказ одежды
+    # todo запитьсь в эксель, бан за мат,поиск ДР по имени
