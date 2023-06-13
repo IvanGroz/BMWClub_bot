@@ -190,6 +190,22 @@ def get_user_event_notif_on(user_id):
         return cur.fetchall()
 
 
+async def unsubscribe_on_event(user_id, event_id):
+    with conn.cursor() as cur:
+        cur.execute("SELECT unsubscribe_on_event({},{})".format(user_id, event_id))
+
+
+async def subscribe_on_event(user_id, event_id):
+    with conn.cursor() as cur:
+        cur.execute("SELECT subscribe_on_event({},{})".format(user_id, event_id))
+
+
+async def is_subscribe_on_event(event_id, user_id) -> bool:
+    with conn.cursor() as cur:
+        cur.execute("SELECT is_subscribe_on_event({},{})".format(user_id, event_id))
+        return (cur.fetchall())[0][0]
+
+
 async def any_command(sql: str):
     with conn.cursor() as cur:
         cur.execute(sql)
