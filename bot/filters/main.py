@@ -6,21 +6,21 @@ from bot.database.database import *
 from bot.env import Env
 
 
-class IsAdmin(Filter):
+class IsAdminOrOwner(Filter):
     key = "is_admin"
 
     async def check(self, message: Message) -> bool:
         return await is_admin(message.from_user.id) or await is_owner(message.from_user.id)
 
 
-class IsOwner(Filter):
+class IsOwnerOnly(Filter):
     key = "is_owner"
 
     async def check(self, message: Message) -> bool:
         return await is_owner(message.from_user.id)
 
 
-class IsPlusUser(Filter):
+class IsPlusUserOrAdminOrOwner(Filter):
     key = "is_plus_user"
 
     async def check(self, message: Message) -> bool:
@@ -44,7 +44,14 @@ class IsNotRegistered(Filter):
         return not (await is_registered(message.from_user.id))
 
 
-class IsRegularUser(Filter):
+class IsRegularUserOrPlusUser(Filter):
+    key = "is_regular_user_and_plus"
+
+    async def check(self, message: Message) -> bool:
+        return await IsRegularUserOnly().check(message) or await IsPlusUserOnly().check(message)
+
+
+class IsRegistered(Filter):
     key = "is_regular_user"
 
     async def check(self, message: Message) -> bool:
@@ -55,8 +62,9 @@ class IsRegularUserOnly(Filter):
     key = "is_regular_user_only"
 
     async def check(self, message: Message) -> bool:
-        return not (await is_plus_user(message.from_user.id) or await is_admin(message.from_user.id) or await is_owner(
-            message.from_user.id))
+        return (not (await is_plus_user(message.from_user.id)
+                     or await is_admin(message.from_user.id)
+                     or await is_owner(message.from_user.id)))
 
 
 class IsNotificationGroupCallback(Filter):
@@ -81,10 +89,17 @@ class IsNotificationGroupMessage(Filter):
 
 def register_all_filters(dp: Dispatcher):
     filters = (
-        IsPlusUser,
-        IsAdmin,
-        IsOwner,
-        IsNotRegistered
+        IsAdminOrOwner,
+        IsOwnerOnly,
+        IsPlusUserOrAdminOrOwner,
+        IsPlusUserOnly,
+        IsNotRegistered,
+        IsRegularUserOrPlusUser,
+        IsRegistered,
+        IsRegularUserOnly,
+        IsNotificationGroupCallback,
+        IsNotificationGroupMessage
+
     )
     for filter1 in filters:
         dp.bind_filter(filter1)

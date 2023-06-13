@@ -153,7 +153,7 @@ async def watch_events(message: Message, state: FSMContext):
 
 
 async def event_slider_callback(callback_query: CallbackQuery, callback_data: dict, state: FSMContext):
-    global event_slider
+    global event_slider_user
     edit, event_id = await event_slider.selection(callback_query, callback_data)
     await callback_query.answer()
     if edit:
@@ -429,67 +429,67 @@ async def all_users_info(message: Message, state: FSMContext):
 
 
 def register_admin_handlers(dp: Dispatcher) -> None:
-    dp.register_message_handler(choice_new_plus_user_add, IsAdmin(), IsNotificationGroupMessage(),
+    dp.register_message_handler(choice_new_plus_user_add, IsAdminOrOwner(), IsNotificationGroupMessage(),
                                 commands=['set_new_plus_user'])
-    dp.register_message_handler(add_plus_user_link_callback, IsAdmin(), IsNotificationGroupMessage(),
+    dp.register_message_handler(add_plus_user_link_callback, IsAdminOrOwner(), IsNotificationGroupMessage(),
                                 filters.RegexpCommandsFilter(regexp_commands=['set_new_plus_user_id([0-9]*)']),
                                 state=UpPe.CHOICE_USER_PLUS)
-    dp.register_message_handler(input_new_user_plus_fio, IsAdmin(), IsNotificationGroupMessage(),
+    dp.register_message_handler(input_new_user_plus_fio, IsAdminOrOwner(), IsNotificationGroupMessage(),
                                 state=UpPe.INSERT_USER_PLUS_FIO)
-    dp.register_message_handler(broadcast_input, IsAdmin(), state=AdSt.INSERT_BROADCAST)
-    dp.register_message_handler(user_info_by_fio_input, IsAdmin(), state=AdSt.EDIT_USER)
-    dp.register_message_handler(edit_user_data, IsAdmin(), state=AdSt.EDIT_DATA_USER, content_types=['text', 'photo'])
-    dp.register_message_handler(user_info_by_fio_input, IsAdmin(), state=AdSt.INSERT_USER_FIO)
-    dp.register_message_handler(user_info_by_fio_link_choice, IsAdmin(),
+    dp.register_message_handler(broadcast_input, IsAdminOrOwner(), state=AdSt.INSERT_BROADCAST)
+    dp.register_message_handler(user_info_by_fio_input, IsAdminOrOwner(), state=AdSt.EDIT_USER)
+    dp.register_message_handler(edit_user_data, IsAdminOrOwner(), state=AdSt.EDIT_DATA_USER, content_types=['text', 'photo'])
+    dp.register_message_handler(user_info_by_fio_input, IsAdminOrOwner(), state=AdSt.INSERT_USER_FIO)
+    dp.register_message_handler(user_info_by_fio_link_choice, IsAdminOrOwner(),
                                 filters.RegexpCommandsFilter(regexp_commands=['get_user_info_id([0-9]*)']),
                                 state=AdSt.CHOICE_USER_INFO)
-    dp.register_message_handler(edit_user_info_by_fio_link_choice, IsAdmin(),
+    dp.register_message_handler(edit_user_info_by_fio_link_choice, IsAdminOrOwner(),
                                 filters.RegexpCommandsFilter(regexp_commands=['edit_user_info_id([0-9]*)']),
                                 state=AdSt.CHOICE_USER_EDIT)
-    dp.register_message_handler(get_menu, IsAdmin(), commands=['main_menu'])
+    dp.register_message_handler(get_menu, IsAdminOrOwner(), commands=['main_menu'])
     # handlers to create an event
-    dp.register_message_handler(event_title_input, IsAdmin(), content_types=['text'], state=CrEv.INSERT_TITLE)
-    dp.register_message_handler(event_description_input, IsAdmin(), content_types=['text'],
+    dp.register_message_handler(event_title_input, IsAdminOrOwner(), content_types=['text'], state=CrEv.INSERT_TITLE)
+    dp.register_message_handler(event_description_input, IsAdminOrOwner(), content_types=['text'],
                                 state=CrEv.INSERT_DESCRIPTION)
-    dp.register_message_handler(event_location_input, IsAdmin(), content_types=['text'], state=CrEv.INSERT_LOCATION)
+    dp.register_message_handler(event_location_input, IsAdminOrOwner(), content_types=['text'], state=CrEv.INSERT_LOCATION)
 
-    dp.register_callback_query_handler(event_date_input, IsAdmin(), simple_calendar_callback.filter(),
+    dp.register_callback_query_handler(event_date_input, IsAdminOrOwner(), simple_calendar_callback.filter(),
                                        state=CrEv.INSERT_DATA)
-    dp.register_message_handler(event_time_input, IsAdmin(), content_types=['text'], state=CrEv.INSERT_TIME)
-    dp.register_callback_query_handler(correct_event, IsAdmin(), lambda l: l.data == "correct_event",
+    dp.register_message_handler(event_time_input, IsAdminOrOwner(), content_types=['text'], state=CrEv.INSERT_TIME)
+    dp.register_callback_query_handler(correct_event, IsAdminOrOwner(), lambda l: l.data == "correct_event",
                                        state=CrEv.FINISH_CREATE)
-    dp.register_callback_query_handler(restart_create_event, IsAdmin(), lambda l: l.data == "recreate_event",
+    dp.register_callback_query_handler(restart_create_event, IsAdminOrOwner(), lambda l: l.data == "recreate_event",
                                        state=CrEv.FINISH_CREATE)
 
-    dp.register_callback_query_handler(event_slider_callback, IsAdmin(), event_slider_admin_callback.filter())
+    dp.register_callback_query_handler(event_slider_callback, IsAdminOrOwner(), event_slider_admin_callback.filter())
 
     # edit events handlers
-    dp.register_callback_query_handler(event_edit_location, IsAdmin(), lambda l: l.data == "location_edit")
-    dp.register_message_handler(edit_event_input_location, IsAdmin(), content_types=['text'],
+    dp.register_callback_query_handler(event_edit_location, IsAdminOrOwner(), lambda l: l.data == "location_edit")
+    dp.register_message_handler(edit_event_input_location, IsAdminOrOwner(), content_types=['text'],
                                 state=EdEv.INSERT_LOCATION)
-    dp.register_callback_query_handler(event_edit_date_time, IsAdmin(), lambda l: l.data == "data/time_edit")
-    dp.register_message_handler(edit_event_input_date_time, IsAdmin(), content_types=['text'],
+    dp.register_callback_query_handler(event_edit_date_time, IsAdminOrOwner(), lambda l: l.data == "data/time_edit")
+    dp.register_message_handler(edit_event_input_date_time, IsAdminOrOwner(), content_types=['text'],
                                 state=EdEv.INSERT_DATA_TIME)
-    dp.register_callback_query_handler(event_edit_title_desc, IsAdmin(), lambda l: l.data == "title_and_desc_edit")
-    dp.register_message_handler(edit_event_input_title_desc, IsAdmin(), content_types=['text'],
+    dp.register_callback_query_handler(event_edit_title_desc, IsAdminOrOwner(), lambda l: l.data == "title_and_desc_edit")
+    dp.register_message_handler(edit_event_input_title_desc, IsAdminOrOwner(), content_types=['text'],
                                 state=EdEv.INSERT_TITLE_DESCRIPTION)
-    dp.register_callback_query_handler(event_delete, IsAdmin(), lambda l: l.data == "delete_event")
-    dp.register_callback_query_handler(event_cancel_edit, IsAdmin(), lambda l: l.data == "cancel_event")
+    dp.register_callback_query_handler(event_delete, IsAdminOrOwner(), lambda l: l.data == "delete_event")
+    dp.register_callback_query_handler(event_cancel_edit, IsAdminOrOwner(), lambda l: l.data == "cancel_event")
 
     # основное меню
-    dp.register_message_handler(birthday_menu, IsAdmin(), text='Дни рождения')
-    dp.register_message_handler(broadcast, IsAdmin(), text='Рассылка')
-    dp.register_message_handler(event_menu, IsAdmin(), text='Мероприятия клуба')
-    dp.register_message_handler(users_info_menu, IsAdmin(), text='Информация о пользователях')
-    dp.register_message_handler(user_info_by_fio, IsAdmin(), content_types=['text'], text='Редактировать пользователя')
+    dp.register_message_handler(birthday_menu, IsAdminOrOwner(), text='Дни рождения')
+    dp.register_message_handler(broadcast, IsAdminOrOwner(), text='Рассылка')
+    dp.register_message_handler(event_menu, IsAdminOrOwner(), text='Мероприятия клуба')
+    dp.register_message_handler(users_info_menu, IsAdminOrOwner(), text='Информация о пользователях')
+    dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'], text='Редактировать пользователя')
 
     # подпункты меню
-    dp.register_message_handler(watch_events, IsAdmin(), text='Ближайшие мероприятия')
-    dp.register_message_handler(start_create_event, IsAdmin(), text='Создать мероприятие')
-    dp.register_message_handler(off_events_notif, IsAdmin(), content_types=['text'], text='Отключить уведомления')
-    dp.register_message_handler(on_events_notif, IsAdmin(), content_types=['text'], text='Включить уведомления')
-    dp.register_message_handler(user_info_by_fio, IsAdmin(), content_types=['text'], text='Найти пользователя по ФИО')
-    dp.register_message_handler(all_users_info, IsAdmin(), content_types=['text'],
+    dp.register_message_handler(watch_events, IsAdminOrOwner(), text='Ближайшие мероприятия')
+    dp.register_message_handler(start_create_event, IsAdminOrOwner(), text='Создать мероприятие')
+    dp.register_message_handler(off_events_notif, IsAdminOrOwner(), content_types=['text'], text='Отключить уведомления')
+    dp.register_message_handler(on_events_notif, IsAdminOrOwner(), content_types=['text'], text='Включить уведомления')
+    dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'], text='Найти пользователя по ФИО')
+    dp.register_message_handler(all_users_info, IsAdminOrOwner(), content_types=['text'],
                                 text='Получить данные о всех пользователях')
 
     # Для Др подпункты такие же как и для user plus, реализация в: bot/handlers/user/plus_user.py

@@ -51,10 +51,10 @@ async def add_admin_link_callback(message: Message, state: FSMContext):
 
 def get_owner_handlers(dp: Dispatcher) -> None:
     # callbacks
-    dp.register_message_handler(choice_new_admin_add, IsOwner(), IsNotificationGroupMessage(),
+    dp.register_message_handler(choice_new_admin_add, IsOwnerOnly(), IsNotificationGroupMessage(),
                                 commands=['set_new_admin'])
-    dp.register_message_handler(input_new_admin_fio, IsOwner(), IsNotificationGroupMessage(),
+    dp.register_message_handler(input_new_admin_fio, IsOwnerOnly(), IsNotificationGroupMessage(),
                                 state=UpPe.INSERT_ADMIN_FIO)
-    dp.register_message_handler(add_admin_link_callback, IsOwner(), IsNotificationGroupMessage(),
+    dp.register_message_handler(add_admin_link_callback, IsOwnerOnly(), IsNotificationGroupMessage(),
                                 filters.RegexpCommandsFilter(regexp_commands=['set_admin_by_id_([0-9]*)']),
                                 state=UpPe.CHOICE_ADMIN)
