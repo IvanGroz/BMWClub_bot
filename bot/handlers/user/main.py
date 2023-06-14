@@ -124,5 +124,4 @@ def register_user_handlers(dp: Dispatcher) -> None:
                                 state=RegState.HELP_QUESTION)
     dp.register_message_handler(start_help, IsRegularUserOrPlusUser(), text='Получить помощь/Задать вопрос')
     dp.register_message_handler(get_menu, IsRegularUserOnly(), commands=['main_menu'])
-    # todo заказ одежды, натсроика реплик
-    # todo запитьсь в эксель,поиск ДР по имени
+    # todo заказ одежды, натсроика реплик,поиск ДР по имени

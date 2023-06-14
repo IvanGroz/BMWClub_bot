@@ -47,3 +47,5 @@ class AdminStates(StatesGroup):
     EDIT_USER: Final = State()
     CHOICE_USER_EDIT: Final = State()
     EDIT_DATA_USER: Final = State()
+    INSERT_USER_FIO_BIRTHDAY: Final = State()  # Ввод ФИО искомого пользователя
+    GET_BIRTHDAY_FIO: Final = State()

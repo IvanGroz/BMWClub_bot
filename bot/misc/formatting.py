@@ -15,6 +15,19 @@ async def format_birthday(birthdays, day) -> str:
     return text
 
 
+async def format_birthday_by_fio(birthday) -> str:
+    text: str = 'Дата рождения пользователя:{}'.format(birthday[0][5].strftime('%Y\-%m\-%d'))
+    if len(birthday) != 0:
+        text += '\n[{} {} {}](tg://user?id={})\, исполняется {} лет '.format(birthday[0][1],
+                                                                             birthday[0][2],
+                                                                             birthday[0][3],
+                                                                             birthday[0][0],
+                                                                             birthday[0][4])
+    else:
+        text = 'В этот день ни у кого дня рождения нет\!'
+    return text
+
+
 async def format_founded_users(users: list, command: str):
     text: str = 'Список найденных пользователей:'
     users_fio_id: dict = {}

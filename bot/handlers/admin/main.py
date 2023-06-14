@@ -345,8 +345,8 @@ async def user_info_by_fio(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await bot.send_message(message.from_user.id,
                            'Введите ФИО пользователя, если не знаете Фамилию,'
-                           ' то поиск можно вести по имени или отчеству, '
-                           '<b>Нет Имя</b> и <b>Нет Нет Фамилия</b>, соответственно',
+                           ' то поиск можно вести по имени или отчеству,\n '
+                           '<b>{Нет}[пробел]{Имя}</b> и <b>{Нет}[пробел]{Нет}[пробел]{Отчество}</b>, соответственно',
                            ParseMode.HTML)
     if message.text == 'Редактировать пользователя':
         await state.set_state(AdSt.EDIT_USER)

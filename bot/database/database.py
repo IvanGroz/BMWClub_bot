@@ -81,7 +81,7 @@ async def get_users_birthday(days: int) -> list:
         arr_users = []
         for i in range(days):
             cur.execute(
-                "SELECT user_id,surname,first_name,patronymic,cast(date_part('year',age(birthday)) AS INTEGER)"
+                "SELECT user_id,surname,first_name,patronymic,cast(date_part('year',age(birthday)) AS INTEGER)+1"
                 " from users where date_part('day',birthday) = {} "
                 "and date_part('month',birthday) = {}".format(
                     date.strftime('%d'), date.strftime('%m')))
@@ -89,6 +89,15 @@ async def get_users_birthday(days: int) -> list:
             date += datetime.timedelta(days=1)
             arr_users.append(users)
         return arr_users
+
+
+async def get_users_birthday_id(user_id) -> list:
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT user_id,surname,first_name,patronymic,cast(date_part('year',age(birthday)) AS INTEGER)+1,birthday"
+            " from users where user_id = {}".format(
+                user_id))
+        return cur.fetchall()
 
 
 def get_users_birthday_notif_on() -> tuple:
