@@ -39,8 +39,7 @@ async def on_birthday_notif(message: Message, state: FSMContext):
 async def get_menu(message: Message, state: FSMContext):
     await state.finish()
     await message.bot.send_message(message.from_user.id, 'Возврат в главное меню',
-                                   reply_markup=await kb.event_plus_user_menu(
-                                       db.get_user_event_notif_on(message.from_user.id)))
+                                   reply_markup=await kb.plus_user_start_menu())
 
 
 async def birthday_menu(message: Message, state: FSMContext):

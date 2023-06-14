@@ -3,6 +3,7 @@ import re
 
 from aiogram import Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters import *
 from aiogram.types import *
 
 import bot.keyboards as kb
@@ -44,11 +45,12 @@ async def permanent_menu(message: Message, state: FSMContext) -> bool:
 
 async def help_question_input(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    await bot.send_message(message.chat.id, st.registration_help_answer)
-    await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
-                           reply_markup=await kb.question_answer(message.from_user.id))
+    if message.text != 'Получить помощь по регистрации' and message.text != 'Допустил ошибку/Начать заново':
+        await bot.send_message(message.chat.id, st.registration_help_answer)
+        await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
+                               reply_markup=await kb.question_answer(message.from_user.id))
 
-    await state.finish()
+        await state.finish()
 
 
 async def surname_input(message: Message, state: FSMContext):
@@ -207,14 +209,15 @@ async def end_registration(callback_query: CallbackQuery, state: FSMContext):
                                                                                          data['surname'],
                                                                                          data['patronymic'],
                                                                                          data['user_id']),
-                               'MarkdownV2', message_thread_id=Env.NEW_MEMBER_THREAD_ID)
+                               ParseMode.MARKDOWN_V2, message_thread_id=Env.NEW_MEMBER_THREAD_ID)
     await state.finish()
-    await bot.send_message(callback_query.from_user.id, st.finish_registration, reply_markup=ReplyKeyboardRemove())
+    await bot.send_message(callback_query.from_user.id, st.finish_registration,
+                           reply_markup=await kb.regular_user_start_menu())
 
 
 def register_registration_handlers(dp: Dispatcher) -> None:
     # message handlers
-    dp.register_message_handler(cmd_start, IsNotRegistered(), commands=['start'])
+    dp.register_message_handler(cmd_start, IsNotRegistered(), CommandStart())
     dp.register_message_handler(surname_input, IsNotRegistered(), content_types=['text'], state=RegState.INSERT_SURNAME)
     dp.register_message_handler(name_input, IsNotRegistered(), content_types=['text'], state=RegState.INSERT_NAME)
     dp.register_message_handler(patronymic_input, IsNotRegistered(), content_types=['text'],

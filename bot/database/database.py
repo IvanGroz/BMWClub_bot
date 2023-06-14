@@ -58,7 +58,7 @@ async def is_owner(user_id_par) -> bool:
 
 async def is_registered(user_id_par) -> bool:
     with conn.cursor() as cur:
-        cur.execute('select user_id from users where user_id = {}'.format(user_id_par))
+        cur.execute('select exists(select user_id from users where user_id = {})'.format(user_id_par))
         return cur.fetchone()[0]
 
 
@@ -110,9 +110,19 @@ def set_new_admin(user_id):
         cur.execute("UPDATE users SET is_admin = TRUE WHERE user_id = {}".format(user_id))
 
 
+def delete_admin(user_id):
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET is_admin = FALSE WHERE user_id = {}".format(user_id))
+
+
 def set_new_plus_user(user_id):
     with conn.cursor() as cur:
         cur.execute("UPDATE users SET is_plus_user = TRUE WHERE user_id = {}".format(user_id))
+
+
+def delete_plus_user(user_id):
+    with conn.cursor() as cur:
+        cur.execute("UPDATE users SET is_plus_user = FALSE WHERE user_id = {}".format(user_id))
 
 
 def find_user(data_fio: list):
@@ -130,6 +140,27 @@ def find_user(data_fio: list):
             sql_command += "patronymic = '{}'".format(data_fio[2])
     with conn.cursor() as cur:
         cur.execute(sql_command)
+        return cur.fetchall()
+
+
+def find_user_by_car(number_plate: str):
+    with conn.cursor() as cur:
+        cur.execute('SELECT user_id,surname, first_name, patronymic, birthday, '
+                    'phone_number,about,partner,is_admin, is_plus_user,'
+                    ' c.number_plate, c.car_photo_file_id FROM users join car c on c.id = users.car_id '
+                    " WHERE number_plate = '{}'".format(number_plate))
+        return cur.fetchone()
+
+
+def find_admins():
+    with conn.cursor() as cur:
+        cur.execute("SELECT user_id,surname,first_name,patronymic FROM users where is_admin = TRUE")
+        return cur.fetchall()
+
+
+def find_plus_users():
+    with conn.cursor() as cur:
+        cur.execute("SELECT user_id,surname,first_name,patronymic FROM users where is_plus_user = TRUE")
         return cur.fetchall()
 
 

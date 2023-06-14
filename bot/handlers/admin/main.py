@@ -47,6 +47,35 @@ async def input_new_user_plus_fio(message: Message, state: FSMContext):
         await state.finish()
 
 
+async def delete_plus_user_choice(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    users = db.find_plus_users()
+    global founded_users_dict
+    founded: str = await format_founded_users(users, '/delete\_plus\_user\_id')
+    founded_users_dict = founded[1]
+    bot_me = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, founded[0], ParseMode.MARKDOWN_V2)
+    async with state.proxy() as data:
+        data['list_users_mes'] = bot_me
+    if len(founded_users_dict) == 0:
+        await state.finish()
+
+
+async def delete_plus_user_link_callback(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    left, right = message.text.split('@')
+    user_id = left[20:]
+    db.delete_plus_user(user_id)
+    global founded_users_dict
+    async with state.proxy() as data:
+        list_users_mes = data['list_users_mes']
+        await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
+    await message.answer('Пользователь\,{}\, был лишен расширенного функционала\!'.format(
+        founded_users_dict.get(str(user_id))))
+    await bot.send_message(user_id, 'Вы были лишены расширенного функционала', ParseMode.HTML,
+                           reply_markup=await kb.regular_user_start_menu())
+    await bot.delete_message(message.chat.id, message.message_id)
+
+
 async def add_plus_user_link_callback(message: Message, state: FSMContext):
     bot: Bot = message.bot
     left, right = message.text.split('@')
@@ -57,8 +86,10 @@ async def add_plus_user_link_callback(message: Message, state: FSMContext):
         list_users_mes = data['list_users_mes']
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
     await message.answer('Новый пользователь\,{}\, с расширенной функциональностью добавлен\!'.format(
-        founded_users_dict.get(str(user_id))))
+        founded_users_dict.get(str(user_id))), parse_mode=ParseMode.MARKDOWN_V2)
     await bot.delete_message(message.chat.id, message.message_id)
+    await bot.send_message(user_id, 'Вам был предоставлен расширенный функционал', ParseMode.HTML,
+                           reply_markup=await kb.plus_user_start_menu())
 
 
 async def start_create_event(message: Message, state: FSMContext):
@@ -293,6 +324,23 @@ async def users_info_menu(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id, "Выберите пункт меню", reply_markup=await kb.users_info_menu())
 
 
+async def user_info_by_number_plate(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    await bot.send_message(message.from_user.id,
+                           'Введите гос.номер в формате А333АА-54 (код-регион), '
+                           'но т.к. номера могут быть иностранные, то допускается свободный ввод',
+                           ParseMode.HTML)
+    await state.set_state(AdSt.INSERT_USER_PLATE)
+
+
+async def user_info_by_number_plate_input(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    user = db.find_user_by_car(message.text)
+    text, file_id = await user_info(user)
+    await bot.send_photo(message.from_user.id, file_id, text,
+                         parse_mode=ParseMode.HTML)  # Тут описание найденного пользователя
+
+
 async def user_info_by_fio(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await bot.send_message(message.from_user.id,
@@ -344,7 +392,7 @@ async def edit_user_info_by_fio_link_choice(message: Message, state: FSMContext)
                                             "3.Род деятельности\n"
                                             "4.Информация о партнерстве\n"
                                             "5.Гос.номер\n\n "
-                                            "Отправьте:{номер}[пробел]{значение поля} \n\n"
+                                            "Отправьте:\n{номер}[пробел]{значение поля} \n\n"
                                             "Если Вы хотите изменить фото авто, просто отправьте фото"
                            , parse_mode=ParseMode.HTML)
     await bot.delete_message(message.chat.id, message.message_id)
@@ -364,7 +412,7 @@ async def edit_user_data(message: Message, state: FSMContext):
         await message.answer('Фото машины изменено')
     else:
         if re.fullmatch(r'[1-5] .*', message.text) is not None:
-            left, right = message.text.split()
+            left, right = message.text.split(maxsplit=1)
             match left:
                 case '1':  # Дата рождения
                     try:
@@ -416,19 +464,17 @@ async def user_info_by_fio_link_choice(message: Message, state: FSMContext):
 async def all_users_info(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await get_all_users_info()
-    await bot.send_document(message.chat.id, open(r'users_data.csv', 'rb'),
-                            caption='В данном файле содержится вся нужная информация о пользователях,'
-                                    ' открывать ее нужно на ПК с помощью Exel'
-                                    'для того чтобы привести данные в надлежащий вид:\n'
-                                    '1.Выделяем всю первую колонку\n\n'
-                                    '2.В разделе "Данные" выбираем "Текст по столбцам"\n\n'
-                                    '3.В диалоговом окне "Укажите формат данных" выберите '
-                                    '"С разделителями" и нажмите "Далее"\n\n'
-                                    '4.Символом-разделителем является: Ставьте галочку на "запятая"\n\n'
-                                    '5.Нажимаем "Готово"\n', parse_mode=ParseMode.HTML)
+    await bot.send_document(message.chat.id, open(r'all_users_data.xlsx', 'rb'),
+                            caption='В данном файле содержится вся нужная информация о пользователях'
+                                    , parse_mode=ParseMode.HTML)
 
 
 def register_admin_handlers(dp: Dispatcher) -> None:
+    dp.register_message_handler(delete_plus_user_choice, IsAdminOrOwner(), IsNotificationGroupMessage(),
+                                commands=['delete_plus_user'])
+    dp.register_message_handler(delete_plus_user_link_callback, IsAdminOrOwner(), IsNotificationGroupMessage(),
+                                filters.RegexpCommandsFilter(regexp_commands=['delete_plus_user_id([0-9]*)']))
+
     dp.register_message_handler(choice_new_plus_user_add, IsAdminOrOwner(), IsNotificationGroupMessage(),
                                 commands=['set_new_plus_user'])
     dp.register_message_handler(add_plus_user_link_callback, IsAdminOrOwner(), IsNotificationGroupMessage(),
@@ -438,8 +484,10 @@ def register_admin_handlers(dp: Dispatcher) -> None:
                                 state=UpPe.INSERT_USER_PLUS_FIO)
     dp.register_message_handler(broadcast_input, IsAdminOrOwner(), state=AdSt.INSERT_BROADCAST)
     dp.register_message_handler(user_info_by_fio_input, IsAdminOrOwner(), state=AdSt.EDIT_USER)
-    dp.register_message_handler(edit_user_data, IsAdminOrOwner(), state=AdSt.EDIT_DATA_USER, content_types=['text', 'photo'])
+    dp.register_message_handler(edit_user_data, IsAdminOrOwner(), state=AdSt.EDIT_DATA_USER,
+                                content_types=['text', 'photo'])
     dp.register_message_handler(user_info_by_fio_input, IsAdminOrOwner(), state=AdSt.INSERT_USER_FIO)
+    dp.register_message_handler(user_info_by_number_plate_input, IsAdminOrOwner(), state=AdSt.INSERT_USER_PLATE)
     dp.register_message_handler(user_info_by_fio_link_choice, IsAdminOrOwner(),
                                 filters.RegexpCommandsFilter(regexp_commands=['get_user_info_id([0-9]*)']),
                                 state=AdSt.CHOICE_USER_INFO)
@@ -451,7 +499,8 @@ def register_admin_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(event_title_input, IsAdminOrOwner(), content_types=['text'], state=CrEv.INSERT_TITLE)
     dp.register_message_handler(event_description_input, IsAdminOrOwner(), content_types=['text'],
                                 state=CrEv.INSERT_DESCRIPTION)
-    dp.register_message_handler(event_location_input, IsAdminOrOwner(), content_types=['text'], state=CrEv.INSERT_LOCATION)
+    dp.register_message_handler(event_location_input, IsAdminOrOwner(), content_types=['text'],
+                                state=CrEv.INSERT_LOCATION)
 
     dp.register_callback_query_handler(event_date_input, IsAdminOrOwner(), simple_calendar_callback.filter(),
                                        state=CrEv.INSERT_DATA)
@@ -470,7 +519,8 @@ def register_admin_handlers(dp: Dispatcher) -> None:
     dp.register_callback_query_handler(event_edit_date_time, IsAdminOrOwner(), lambda l: l.data == "data/time_edit")
     dp.register_message_handler(edit_event_input_date_time, IsAdminOrOwner(), content_types=['text'],
                                 state=EdEv.INSERT_DATA_TIME)
-    dp.register_callback_query_handler(event_edit_title_desc, IsAdminOrOwner(), lambda l: l.data == "title_and_desc_edit")
+    dp.register_callback_query_handler(event_edit_title_desc, IsAdminOrOwner(),
+                                       lambda l: l.data == "title_and_desc_edit")
     dp.register_message_handler(edit_event_input_title_desc, IsAdminOrOwner(), content_types=['text'],
                                 state=EdEv.INSERT_TITLE_DESCRIPTION)
     dp.register_callback_query_handler(event_delete, IsAdminOrOwner(), lambda l: l.data == "delete_event")
@@ -481,14 +531,19 @@ def register_admin_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(broadcast, IsAdminOrOwner(), text='Рассылка')
     dp.register_message_handler(event_menu, IsAdminOrOwner(), text='Мероприятия клуба')
     dp.register_message_handler(users_info_menu, IsAdminOrOwner(), text='Информация о пользователях')
-    dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'], text='Редактировать пользователя')
+    dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'],
+                                text='Редактировать пользователя')
 
     # подпункты меню
     dp.register_message_handler(watch_events, IsAdminOrOwner(), text='Ближайшие мероприятия')
     dp.register_message_handler(start_create_event, IsAdminOrOwner(), text='Создать мероприятие')
-    dp.register_message_handler(off_events_notif, IsAdminOrOwner(), content_types=['text'], text='Отключить уведомления')
+    dp.register_message_handler(off_events_notif, IsAdminOrOwner(), content_types=['text'],
+                                text='Отключить уведомления')
     dp.register_message_handler(on_events_notif, IsAdminOrOwner(), content_types=['text'], text='Включить уведомления')
-    dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'], text='Найти пользователя по ФИО')
+    dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'],
+                                text='Найти пользователя по ФИО')
+    dp.register_message_handler(user_info_by_number_plate, IsAdminOrOwner(), content_types=['text'],
+                                text='Найти пользователя по Гос.Номеру')
     dp.register_message_handler(all_users_info, IsAdminOrOwner(), content_types=['text'],
                                 text='Получить данные о всех пользователях')
 

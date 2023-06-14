@@ -18,9 +18,14 @@ async def registration_menu() -> ReplyKeyboardMarkup:
 
 async def regular_user_start_menu() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True)
-    kb.row()
-    kb.add(KeyboardButton('Помощь'))
-    kb.add(KeyboardButton('Мероприятия клуба'))
+    kb.row(KeyboardButton('Получить помощь/Задать вопрос'), KeyboardButton('Мероприятия клуба'))
+    return kb
+
+
+async def plus_user_start_menu() -> ReplyKeyboardMarkup:
+    kb = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True)
+    kb.row(KeyboardButton('Дни рождения'), KeyboardButton('Мероприятия клуба'))
+    kb.row(KeyboardButton('Получить помощь/Задать вопрос'))
     return kb
 
 
@@ -47,12 +52,6 @@ async def event_admin_menu(notif_on) -> ReplyKeyboardMarkup:
     return kb
 
 
-async def event_plus_user_menu(notif_on) -> ReplyKeyboardMarkup:
-    kb = ReplyKeyboardMarkup(resize_keyboard=True, is_persistent=True)
-    kb.row(KeyboardButton('Дни рождения'), KeyboardButton('Мероприятия клуба'))
-    return kb
-
-
 async def event_menu(notif_on) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(KeyboardButton('Ближайшие мероприятия'),
@@ -63,5 +62,6 @@ async def event_menu(notif_on) -> ReplyKeyboardMarkup:
 async def users_info_menu() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(KeyboardButton('Получить данные о всех пользователях'),
+           KeyboardButton('Найти пользователя по Гос.Номеру'),
            KeyboardButton('Найти пользователя по ФИО'))
     return kb

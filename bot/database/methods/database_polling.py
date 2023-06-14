@@ -23,6 +23,7 @@ months = ["Января", "Февраля", "Марта", "Апреля", "Ма�
 async def reset_swearing():
     await database.any_command("TRUNCATE swearing_users")
 
+
 async def send_birthday_notif(bot: Bot):
     birthdays = await database.get_users_birthday(1)
     if len(birthdays[0][0]) == 0:

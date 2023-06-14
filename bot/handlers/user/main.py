@@ -10,6 +10,7 @@ from bot.keyboards.events_slider import EventsSlider, event_slider_callback_data
 from bot.misc.anti_swearing import is_swearing, censoring_text
 from bot.misc.formatting import format_event_extended
 import datetime, time
+from bot.states import RegisterUser as RegState
 
 
 async def watch_events(message: Message, state: FSMContext):
@@ -84,6 +85,28 @@ async def on_events_notif(message: Message):
         db.get_user_event_notif_on(message.from_user.id)[0]))
 
 
+async def start_help(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    await bot.send_message(message.chat.id, st.registration_help, ParseMode.HTML)
+    await state.set_state(RegState.HELP_QUESTION)
+
+
+async def help_question_input(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    await bot.send_message(message.chat.id, "Ваш вопрос принят.\nОжидайте, скоро наши администраторы свяжутся с вами",
+                           ParseMode.HTML)
+    await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
+                           reply_markup=await kb.question_answer(message.from_user.id), parse_mode=ParseMode.HTML)
+
+    await state.finish()
+
+
+async def get_menu(message: Message, state: FSMContext):
+    await state.finish()
+    await message.bot.send_message(message.from_user.id, 'Возврат в главное меню',
+                                   reply_markup=await kb.regular_user_start_menu())
+
+
 def register_user_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(watch_events, IsRegularUserOrPlusUser(), content_types=['text'],
                                 text='Ближайшие мероприятия')
@@ -92,9 +115,14 @@ def register_user_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(on_events_notif, IsRegularUserOrPlusUser(), content_types=['text'],
                                 text='Включить уведомления')
     dp.register_message_handler(event_menu, IsRegularUserOrPlusUser(), text='Мероприятия клуба')
-    dp.register_message_handler(swear_check, chat_type=[ChatType.SUPERGROUP, ChatType.GROUP],
-                                content_types=['text'])
+
+    dp.register_message_handler(swear_check, IsNOTNotificationGroupMessage(),
+                                chat_type=[ChatType.SUPERGROUP, ChatType.GROUP], content_types=['text'])
     dp.register_callback_query_handler(event_slider_callback, IsRegularUserOrPlusUser(),
                                        event_slider_callback_data.filter())
-    # todo заказ одежды,удаление админа и пользователя +, натсроика мата
+    dp.register_message_handler(help_question_input, IsRegularUserOrPlusUser(), content_types=[ContentType.TEXT],
+                                state=RegState.HELP_QUESTION)
+    dp.register_message_handler(start_help, IsRegularUserOrPlusUser(), text='Получить помощь/Задать вопрос')
+    dp.register_message_handler(get_menu, IsRegularUserOnly(), commands=['main_menu'])
+    # todo заказ одежды, натсроика реплик
     # todo запитьсь в эксель,поиск ДР по имени
