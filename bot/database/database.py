@@ -213,3 +213,12 @@ async def any_command(sql: str):
             return cur.fetchall()
         except ProgrammingError:
             return None
+
+
+async def any_command_get_bool(sql: str):
+    with conn.cursor() as cur:
+        cur.execute(sql)
+        try:
+            return (cur.fetchall())[0][0]
+        except ProgrammingError:
+            return None

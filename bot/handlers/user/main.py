@@ -1,3 +1,5 @@
+import time
+
 from aiogram import Dispatcher, Bot
 from aiogram.types import *
 import bot.strings as st
@@ -7,6 +9,7 @@ from bot.database import database as db
 from bot.keyboards.events_slider import EventsSlider, event_slider_callback_data
 from bot.misc.anti_swearing import is_swearing, censoring_text
 from bot.misc.formatting import format_event_extended
+import datetime, time
 
 
 async def watch_events(message: Message, state: FSMContext):
@@ -51,7 +54,16 @@ async def swear_check(message: Message, state: FSMContext):
                                    message.from_user.full_name, message.from_user.id) + await censoring_text(
                                    message.text),
                                'MarkdownV2')
+        block = await db.any_command_get_bool("SELECT block_for_swearing({})".format(message.from_user.id))
         await bot.delete_message(message.chat.id, message.message_id)
+        if block:
+            until: datetime = datetime.date.today() + datetime.timedelta(days=7)
+            await bot.restrict_chat_member(message.chat.id, message.from_user.id,
+                                           ChatPermissions(False, False, False, False, False, False, False, False,
+                                                           False, False, False, False, False, False, False), None,
+                                           int(time.mktime(until.timetuple()))
+                                           )
+            # чтобы убрать пользователя из бана Настройки группы -> разрешения -> Исключения
 
 
 async def event_menu(message: Message, state: FSMContext):
@@ -80,8 +92,9 @@ def register_user_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(on_events_notif, IsRegularUserOrPlusUser(), content_types=['text'],
                                 text='Включить уведомления')
     dp.register_message_handler(event_menu, IsRegularUserOrPlusUser(), text='Мероприятия клуба')
-    dp.register_message_handler(swear_check, chat_type=[ChatType.SUPERGROUP, ChatType.GROUP], content_types=['text'])
+    dp.register_message_handler(swear_check, chat_type=[ChatType.SUPERGROUP, ChatType.GROUP],
+                                content_types=['text'])
     dp.register_callback_query_handler(event_slider_callback, IsRegularUserOrPlusUser(),
                                        event_slider_callback_data.filter())
-    # todo заказ одежды
-    # todo запитьсь в эксель, бан за мат,поиск ДР по имени
+    # todo заказ одежды,удаление админа и пользователя +, натсроика мата
+    # todo запитьсь в эксель,поиск ДР по имени

@@ -1,5 +1,6 @@
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.base import BaseTrigger
 
 from bot.database import database
 from bot.misc.formatting import *
@@ -11,6 +12,7 @@ async def start_process_db_polling(bot: Bot):
                       kwargs={'bot': bot})
     scheduler.add_job(send_event_notification, trigger='cron', hour=4, minute=15, start_date=datetime.datetime.now(),
                       kwargs={'bot': bot})
+    scheduler.add_job(reset_swearing, 'interval', weeks=1)
     scheduler.start()
 
 
@@ -18,8 +20,10 @@ months = ["Января", "Февраля", "Марта", "Апреля", "Ма�
           "Июля", "Августа", "Сентября", "Октября", "Ноября", "Декабря"]
 
 
-async def send_birthday_notif(bot: Bot):
+async def reset_swearing():
+    await database.any_command("TRUNCATE swearing_users")
 
+async def send_birthday_notif(bot: Bot):
     birthdays = await database.get_users_birthday(1)
     if len(birthdays[0][0]) == 0:
         return
