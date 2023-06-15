@@ -40,9 +40,9 @@ async def admin_menu() -> ReplyKeyboardMarkup:
 async def birthday_menu(notif_on) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(KeyboardButton('Показать ДР на ближайшие 14 дней'),
-           KeyboardButton('Отключить уведомления о ДР' if notif_on[0] else 'Включить уведомления о ДР'),
-           KeyboardButton('Узнать день рождения по ФИО')
+           KeyboardButton('Отключить уведомления о ДР' if notif_on[0] else 'Включить уведомления о ДР')
            )
+    kb.row(KeyboardButton('Узнать день рождения по ФИО'))
     return kb
 
 
@@ -63,7 +63,9 @@ async def event_menu(notif_on) -> ReplyKeyboardMarkup:
 
 async def users_info_menu() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.row(KeyboardButton('Получить данные о всех пользователях'),
-           KeyboardButton('Найти пользователя по Гос.Номеру'),
-           KeyboardButton('Найти пользователя по ФИО'))
+    kb.row(
+        KeyboardButton('Найти пользователя по Гос.Номеру'),
+        KeyboardButton('Найти пользователя по ФИО')
+    )
+    kb.row(KeyboardButton('Получить данные о всех пользователях'))
     return kb

@@ -1,21 +1,22 @@
+import datetime
 import time
 
-from aiogram import Dispatcher, Bot
+from aiogram import Bot
 from aiogram.types import *
-import bot.strings as st
+
 import bot.keyboards as kb
-from bot.filters.main import *
+import bot.strings as st
 from bot.database import database as db
+from bot.filters.main import *
 from bot.keyboards.events_slider import EventsSlider, event_slider_callback_data
 from bot.misc.anti_swearing import is_swearing, censoring_text
 from bot.misc.formatting import format_event_extended
-import datetime, time
 from bot.states import RegisterUser as RegState
 
 
 async def watch_events(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    list_event = await db.get_list_event()
+    list_event = await db.get_list_event(False)
 
     event_slider_user = EventsSlider(list_event, message.from_user.id)
     await bot.send_message(message.chat.id,
@@ -31,7 +32,7 @@ async def event_slider_callback(callback_query: CallbackQuery, callback_data: di
         callback_query, callback_data)
     await callback_query.answer()
     if subscribe:
-        await callback_query.bot.send_message(callback_query.from_user.id, 'Будем рады Вас видеть\)')
+        await callback_query.bot.send_message(callback_query.from_user.id, 'Будем рады Вас видеть)')
 
 
 async def off_events_notif(message: Message, state: FSMContext):
@@ -92,11 +93,16 @@ async def start_help(message: Message, state: FSMContext):
 
 
 async def help_question_input(message: Message, state: FSMContext):
-    bot: Bot = message.bot
-    await bot.send_message(message.chat.id, "Ваш вопрос принят.\nОжидайте, скоро наши администраторы свяжутся с вами",
-                           ParseMode.HTML)
-    await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
-                           reply_markup=await kb.question_answer(message.from_user.id), parse_mode=ParseMode.HTML)
+    if message.text == '/main_menu':
+        await state.finish()
+        await get_menu(message, state)
+    else:
+        bot: Bot = message.bot
+        await bot.send_message(message.chat.id,
+                               "Ваш вопрос принят.\nОжидайте, скоро наши администраторы свяжутся с вами",
+                               ParseMode.HTML)
+        await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
+                               reply_markup=await kb.question_answer(message.from_user.id), parse_mode=ParseMode.HTML)
 
     await state.finish()
 
@@ -124,4 +130,4 @@ def register_user_handlers(dp: Dispatcher) -> None:
                                 state=RegState.HELP_QUESTION)
     dp.register_message_handler(start_help, IsRegularUserOrPlusUser(), text='Получить помощь/Задать вопрос')
     dp.register_message_handler(get_menu, IsRegularUserOnly(), commands=['main_menu'])
-    # todo заказ одежды, натсроика реплик,поиск ДР по имени
+    # todo заказ одежды, натсроика реплик

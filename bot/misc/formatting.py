@@ -38,8 +38,7 @@ async def format_founded_users(users: list, command: str):
                                                          user[2],
                                                          user[3],
                                                          user[0])
-        text += '\n' + user_link + ' \n\-\> {}{} \<\-\n'.format(command,
-                                                                user[0])
+        text += '\n' + user_link + ' \n\-\> {}{} \<\-\n\n'.format(command, user[0])
         users_fio_id[str(user[0])] = user_link
     return text, users_fio_id
 

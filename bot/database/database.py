@@ -186,10 +186,13 @@ async def add_event(state: FSMContext):
             cur.execute(sql_insert)
 
 
-async def get_list_event():
-    sql_command: str
+async def get_list_event(all: bool = False):
+    sql_command: str = "WHERE date >=(SELECT CURRENT_DATE)"
     with conn.cursor() as cur:
-        cur.execute("SELECT * from events ORDER BY date ASC")
+        if all:
+            cur.execute("SELECT * from events  ORDER BY date ASC ")
+        else:
+            cur.execute("SELECT * from events {} ORDER BY date ASC ".format(sql_command))
         return cur.fetchall()
 
 

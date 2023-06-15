@@ -41,6 +41,7 @@ async def input_new_user_plus_fio(message: Message, state: FSMContext):
     founded_users_dict = founded[1]
     bot_me = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, founded[0], ParseMode.MARKDOWN_V2)
     await state.set_state(UpPe.CHOICE_USER_PLUS)
+    await bot.delete_message(message.chat.id, message.message_id)
     async with state.proxy() as data:
         data['list_users_mes'] = bot_me
     if len(founded_users_dict) == 0:
@@ -54,6 +55,7 @@ async def delete_plus_user_choice(message: Message, state: FSMContext):
     founded: str = await format_founded_users(users, '/delete\_plus\_user\_id')
     founded_users_dict = founded[1]
     bot_me = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, founded[0], ParseMode.MARKDOWN_V2)
+    await bot.delete_message(message.chat.id, message.message_id)
     async with state.proxy() as data:
         data['list_users_mes'] = bot_me
     if len(founded_users_dict) == 0:
@@ -70,7 +72,7 @@ async def delete_plus_user_link_callback(message: Message, state: FSMContext):
         list_users_mes = data['list_users_mes']
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
     await message.answer('Пользователь\,{}\, был лишен расширенного функционала\!'.format(
-        founded_users_dict.get(str(user_id))))
+        founded_users_dict.get(str(user_id))), ParseMode.MARKDOWN_V2)
     await bot.send_message(user_id, 'Вы были лишены расширенного функционала', ParseMode.HTML,
                            reply_markup=await kb.regular_user_start_menu())
     await bot.delete_message(message.chat.id, message.message_id)
@@ -90,6 +92,7 @@ async def add_plus_user_link_callback(message: Message, state: FSMContext):
     await bot.delete_message(message.chat.id, message.message_id)
     await bot.send_message(user_id, 'Вам был предоставлен расширенный функционал', ParseMode.HTML,
                            reply_markup=await kb.plus_user_start_menu())
+    await state.finish()
 
 
 async def start_create_event(message: Message, state: FSMContext):
@@ -172,7 +175,7 @@ event_slider: EventsSliderAdmin
 
 async def watch_events(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    list_event = await db.get_list_event()
+    list_event = await db.get_list_event(True)
     global event_slider
     event_slider = EventsSliderAdmin(list_event)
     await bot.send_message(message.chat.id,
@@ -301,22 +304,29 @@ async def on_events_notif(message: Message, state: FSMContext):
 
 
 async def broadcast(message: Message, state: FSMContext):
-    await message.answer('Напишите сообщение, которое будет доставлено всем авторизованным пользователям в лс от бота')
+    await message.answer('Напишите сообщение, которое будет доставлено всем авторизованным пользователям в лс от бота',
+                         reply_markup=ReplyKeyboardRemove())
     await state.set_state(AdSt.INSERT_BROADCAST)
 
 
 async def broadcast_input(message: Message, state: FSMContext):
-    if not await is_swearing(message.text):
-        await message.answer('Сообщение принято')
-        await state.finish()
-        user_ids = await db.any_command("SELECT user_id from users")
-        for user_id in user_ids:
-            try:
-                await message.bot.send_message(user_id[0], "<b>Важное объявление!</b>\n" + message.text, ParseMode.HTML)
-            except ChatNotFound:
-                pass
+    if not message.text.startswith('/'):
+        if not await is_swearing(message.text):
+            await message.answer('Сообщение принято')
+            await state.finish()
+            user_ids = await db.any_command("SELECT user_id from users")
+            for user_id in user_ids:
+                try:
+                    await message.bot.send_message(user_id[0], "<b>Важное объявление!</b>\n" + message.text,
+                                                   ParseMode.HTML)
+                except ChatNotFound:
+                    pass
+        else:
+            await message.answer('Такие сообщения не допускаются к публикации!', ParseMode.HTML)
     else:
-        await message.answer('Такие сообщения не допускаются к публикации!', ParseMode.HTML)
+        if message.text == '/main_menu':
+            await get_menu(message, state)
+        await state.finish()
 
 
 async def users_info_menu(message: Message, state: FSMContext):
@@ -334,11 +344,15 @@ async def user_info_by_number_plate(message: Message, state: FSMContext):
 
 
 async def user_info_by_number_plate_input(message: Message, state: FSMContext):
-    bot: Bot = message.bot
-    user = db.find_user_by_car(message.text)
-    text, file_id = await user_info(user)
-    await bot.send_photo(message.from_user.id, file_id, text,
-                         parse_mode=ParseMode.HTML)  # Тут описание найденного пользователя
+    if message.text == '/main_menu':
+        await state.finish()
+        await get_menu(message, state)
+    else:
+        bot: Bot = message.bot
+        user = db.find_user_by_car(message.text)
+        text, file_id = await user_info(user)
+        await bot.send_photo(message.from_user.id, file_id, text,
+                             parse_mode=ParseMode.HTML)  # Тут описание найденного пользователя
 
 
 async def user_info_by_fio(message: Message, state: FSMContext):
@@ -466,7 +480,7 @@ async def all_users_info(message: Message, state: FSMContext):
     await get_all_users_info()
     await bot.send_document(message.chat.id, open(r'all_users_data.xlsx', 'rb'),
                             caption='В данном файле содержится вся нужная информация о пользователях'
-                                    , parse_mode=ParseMode.HTML)
+                            , parse_mode=ParseMode.HTML)
 
 
 def register_admin_handlers(dp: Dispatcher) -> None:

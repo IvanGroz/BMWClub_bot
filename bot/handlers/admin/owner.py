@@ -28,6 +28,7 @@ async def input_new_admin_fio(message: Message, state: FSMContext):
     founded_users_dict = founded[1]
     bot_me = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, founded[0], ParseMode.MARKDOWN_V2)
     await state.set_state(UpPe.CHOICE_ADMIN)
+    await bot.delete_message(message.chat.id, message.message_id)
     async with state.proxy() as data:
         data['list_users_mes'] = bot_me
     if len(founded_users_dict) == 0:
@@ -43,7 +44,8 @@ async def add_admin_link_callback(message: Message, state: FSMContext):
     async with state.proxy() as data:
         list_users_mes = data['list_users_mes']
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
-    await message.answer('Новый админ\,{}\, добавлен\!'.format(founded_users_dict.get(str(user_id))))
+    await message.answer('Новый админ\,{}\, добавлен\!'.format(founded_users_dict.get(str(user_id))),
+                         ParseMode.MARKDOWN_V2)
     await bot.delete_message(message.chat.id, message.message_id)
     await state.finish()
     await bot.send_message(user_id, 'Поздравляю Вы были назначены администратором бота',
@@ -57,6 +59,7 @@ async def choice_delete_admin(message: Message, state: FSMContext):
     founded = await format_founded_users(users, "/delete\_admin\_id")
     founded_users_dict = founded[1]
     bot_me = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, founded[0], ParseMode.MARKDOWN_V2)
+    await bot.delete_message(message.chat.id, message.message_id)
     async with state.proxy() as data:
         data['list_users_mes'] = bot_me
     if len(founded_users_dict) == 0:
@@ -72,7 +75,7 @@ async def delete_admin_link_callback(message: Message, state: FSMContext):
     async with state.proxy() as data:
         list_users_mes = data['list_users_mes']
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
-    await message.answer('Админ\,{}\, удален\!'.format(founded_users_dict.get(str(user_id))))
+    await message.answer('Админ\,{}\, удален\!'.format(founded_users_dict.get(str(user_id))), ParseMode.MARKDOWN_V2)
     await bot.delete_message(message.chat.id, message.message_id)
     await state.finish()
     await bot.send_message(user_id, 'Теперь вы обычный пользователь',
@@ -92,4 +95,3 @@ def get_owner_handlers(dp: Dispatcher) -> None:
                                 commands=['delete_admin'])
     dp.register_message_handler(delete_admin_link_callback, IsOwnerOnly(), IsNotificationGroupMessage(),
                                 filters.RegexpCommandsFilter(regexp_commands=['delete_admin_id([0-9]*)']))
-
