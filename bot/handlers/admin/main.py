@@ -318,8 +318,9 @@ async def broadcast_input(message: Message, state: FSMContext):
             user_ids = await db.any_command("SELECT user_id from users")
             for user_id in user_ids:
                 try:
-                    await message.bot.send_message(user_id[0], "<b>Важное объявление!</b>\n" + message.text,
-                                                   ParseMode.HTML)
+                    mes_pin = await message.bot.send_message(user_id[0], "<b>Важное объявление!</b>\n" + message.text,
+                                                            ParseMode.HTML)
+                    await message.bot.pin_chat_message(user_id[0], mes_pin.message_id, True)
                 except ChatNotFound:
                     pass
         else:
@@ -367,26 +368,23 @@ async def user_info_by_fio(message: Message, state: FSMContext):
 
 
 async def user_info_by_fio_input(message: Message, state: FSMContext):
-    if message.text == '/main_menu':
-        bot: Bot = message.bot
-        users = db.find_user(message.text.split())
-        global founded_users_dict
-        # sm = await state.get_state()
-        if await state.get_state() == 'AdminStates:EDIT_USER':
-            founded = await format_founded_users(users, '/edit\_user\_info\_id')
-            founded_users_dict = founded[1]
-            await state.set_state(AdSt.CHOICE_USER_EDIT)
-        if await state.get_state() == 'AdminStates:INSERT_USER_FIO':
-            founded = await format_founded_users(users, '/get\_user\_info\_id')
-            founded_users_dict = founded[1]
-            await state.set_state(AdSt.CHOICE_USER_INFO)
-        bot_me = await bot.send_message(message.from_user.id, founded[0], ParseMode.MARKDOWN_V2)
+    bot: Bot = message.bot
+    users = db.find_user(message.text.split())
+    global founded_users_dict
+    # sm = await state.get_state()
+    if await state.get_state() == 'AdminStates:EDIT_USER':
+        founded = await format_founded_users(users, '/edit\_user\_info\_id')
+        founded_users_dict = founded[1]
+        await state.set_state(AdSt.CHOICE_USER_EDIT)
+    if await state.get_state() == 'AdminStates:INSERT_USER_FIO':
+        founded = await format_founded_users(users, '/get\_user\_info\_id')
+        founded_users_dict = founded[1]
+        await state.set_state(AdSt.CHOICE_USER_INFO)
+    bot_me = await bot.send_message(message.from_user.id, founded[0], ParseMode.MARKDOWN_V2)
 
-        async with state.proxy() as data:
-            data['list_users_msg'] = bot_me
-        if len(founded_users_dict) == 0:
-            await state.finish()
-    else:
+    async with state.proxy() as data:
+        data['list_users_msg'] = bot_me
+    if len(founded_users_dict) == 0:
         await state.finish()
 
 
@@ -483,8 +481,11 @@ async def all_users_info(message: Message, state: FSMContext):
                             caption='В данном файле содержится вся нужная информация о пользователях'
                             , parse_mode=ParseMode.HTML)
 
+
 async def mock(message: Message, state: FSMContext):
     pass
+
+
 def register_admin_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(delete_plus_user_choice, IsAdminOrOwner(), IsNotificationGroupMessage(),
                                 commands=['delete_plus_user'])
