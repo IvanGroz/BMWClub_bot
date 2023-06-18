@@ -227,7 +227,7 @@ def get_users_event_notif_on() -> tuple:
         return cur.fetchall()
 
 
-def get_user_event_notif_on(user_id):
+def get_one_user_event_notif_on(user_id):
     with conn.cursor() as cur:
         cur.execute("SELECT event_notif from users where user_id = {}".format(user_id))
         return cur.fetchall()

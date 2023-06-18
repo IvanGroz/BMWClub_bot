@@ -13,6 +13,7 @@ class RegisterUser(StatesGroup):
     INSERT_NUMBER_PLATE: Final = State()  # Состояние при котором принимается Гос. Номер Авто
     INSERT_NON_RUS_PLATE: Final = State()  # Состояние при котором принимается иностранный Гос. Номер Авто
     INSERT_PARTNER_BUSINESS: Final = State()  # Состояние при котором принимается Информация о партнерстве
+    INSERT_ABOUT_BUSINESS: Final = State()
     NEUTRAL: Final = State()
     HELP_QUESTION: Final = State()
 

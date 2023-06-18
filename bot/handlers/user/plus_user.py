@@ -87,7 +87,8 @@ async def birthday_menu(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id, 'Укажите пункт меню',
                            reply_markup=await kb.birthday_menu(db.get_user_birthday_notif_on(message.from_user.id)[0]))
 
-
+async def mock(message: Message, state: FSMContext):
+    pass
 def register_user_plus_handlers(dp: Dispatcher) -> None:
     # handlers
     dp.register_message_handler(birthday_slider_start, IsPlusUserOrAdminOrOwner(), content_types=['text'],
@@ -103,7 +104,7 @@ def register_user_plus_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(birthday_find_link_callback, IsAdminOrOwner(),
                                 filters.RegexpCommandsFilter(regexp_commands=['get_birthday_by_id([0-9]*)']),
                                 state=AdSt.GET_BIRTHDAY_FIO)
-    dp.register_message_handler(get_menu, IsPlusUserOnly(), commands=['main_menu'])
+    dp.register_message_handler(mock, IsPlusUserOnly(), commands=['main_menu'])
 
     dp.register_message_handler(birthday_menu, IsPlusUserOrAdminOrOwner(), text='Дни рождения')
 

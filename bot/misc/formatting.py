@@ -5,11 +5,11 @@ async def format_birthday(birthdays, day) -> str:
     text: str = 'В эту дату\, день рождения у:'
     if len(birthdays[day][0]) != 0:
         for birthday in birthdays[day][0]:  # [номер дня][0 - пользователи , 1 - дата (месяц и день)]
-            text += '\n[{} {} {}](tg://user?id={})\, исполняется {} лет '.format(birthday[1],
-                                                                                 birthday[2],
-                                                                                 birthday[3],
-                                                                                 birthday[0],
-                                                                                 birthday[4])
+            text += '\n[{} {} {}](tg://user?id={})\, исполняется {} '.format(birthday[1],
+                                                                             birthday[2],
+                                                                             birthday[3],
+                                                                             birthday[0],
+                                                                             birthday[4])
     else:
         text = 'В этот день ни у кого дня рождения нет\!'
     return text
@@ -18,14 +18,22 @@ async def format_birthday(birthdays, day) -> str:
 async def format_birthday_by_fio(birthday) -> str:
     text: str = 'Дата рождения пользователя:{}'.format(birthday[0][5].strftime('%Y\-%m\-%d'))
     if len(birthday) != 0:
-        text += '\n[{} {} {}](tg://user?id={})\, исполняется {} лет '.format(birthday[0][1],
-                                                                             birthday[0][2],
-                                                                             birthday[0][3],
-                                                                             birthday[0][0],
-                                                                             birthday[0][4])
+        text += '\n[{} {} {}](tg://user?id={})\, исполняется {} '.format(birthday[0][1],
+                                                                         birthday[0][2],
+                                                                         birthday[0][3],
+                                                                         birthday[0][0],
+                                                                         birthday[0][4])
     else:
         text = 'В этот день ни у кого дня рождения нет\!'
     return text
+
+
+async def replace_markdown_marks(string: str):
+    strings_replace = ['_', '*', '[', ']', '(', ')', '~', '`', '>',
+                       '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    for symbol in strings_replace:  # Экранируем спец символы для ТГ-разметки сообщений
+        string = string.replace(symbol, '\\' + symbol)
+    return string
 
 
 async def format_founded_users(users: list, command: str):

@@ -30,4 +30,5 @@ def start_bot():
     bot: Bot = Bot(token=Env.TOKEN, parse_mode=ParseMode.HTML)
     dp = Dispatcher(bot, storage=MemoryStorage())
     dp.setup_middleware(LogMiddleware())
+
     executor.start_polling(dp, skip_updates=True, on_startup=__on_start_up)

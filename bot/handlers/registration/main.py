@@ -4,6 +4,7 @@ import re
 from aiogram import Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import *
+from aiogram.dispatcher.filters.state import StatesGroup
 from aiogram.types import *
 
 import bot.keyboards as kb
@@ -12,6 +13,7 @@ from bot.database import database as conn
 from bot.env import Env
 from bot.filters.main import IsNotRegistered
 from bot.keyboards.date_picker import date_picker_callback, DatePicker
+from bot.misc.formatting import replace_markdown_marks
 from bot.states import RegisterUser as RegState
 
 
@@ -20,13 +22,28 @@ async def cmd_start(message: Message):
     await bot.send_message(message.chat.id, st.start_response, reply_markup=await kb.start_reg_message())
 
 
+async def get_menu(message: Message, state: FSMContext):
+    await message.bot.send_message(message.from_user.id, 'Меню открыто', reply_markup=await kb.registration_menu())
+
+
 async def start_register(callback_query: CallbackQuery, state: FSMContext):
     bot: Bot = callback_query.bot
+    if callback_query.data == 'register_partner':
+        await bot.send_message(callback_query.message.chat.id, st.registr_attention_partner)
+        async with state.proxy() as data:
+            data['is_business'] = 'partner'
+    if callback_query.data == 'register_ads':
+        await bot.send_message(callback_query.message.chat.id, st.registr_attention_ads)
+        async with state.proxy() as data:
+            data['is_business'] = 'ads'
+    if callback_query.data == 'register':
+        await bot.send_message(callback_query.message.chat.id, st.registr_attention)
+
+    await bot.delete_message(callback_query.from_user.id, callback_query.message.message_id)
     await bot.answer_callback_query(callback_query.id)
     async with state.proxy() as data:
         data['user_id'] = callback_query.from_user.id
     # await bot.delete_message(chat_id=callback_query.from_user.id, message_id=callback_query.message.message_id)
-    await bot.send_message(callback_query.message.chat.id, st.registr_attention)
     await bot.send_message(callback_query.message.chat.id, st.input_surname, reply_markup=await kb.registration_menu())
     await state.set_state(RegState.INSERT_SURNAME)
 
@@ -54,33 +71,67 @@ async def help_question_input(message: Message, state: FSMContext):
 
 
 async def surname_input(message: Message, state: FSMContext):
-    if await permanent_menu(message, state):
-        return
-    bot: Bot = message.bot
-    async with state.proxy() as data:
-        data['surname'] = message.text
-    await bot.send_message(message.chat.id, st.input_name)
-    await state.set_state(RegState.INSERT_NAME)
+    if not message.text.startswith('/'):
+        if await permanent_menu(message, state):
+            return
+        bot: Bot = message.bot
+        async with state.proxy() as data:
+            data['surname'] = message.text
+        await bot.send_message(message.chat.id, st.input_name)
+        await state.set_state(RegState.INSERT_NAME)
 
 
 async def name_input(message: Message, state: FSMContext):
-    if await permanent_menu(message, state):
-        return
-    bot: Bot = message.bot
-    async with state.proxy() as data:
-        data['name'] = message.text
-    await bot.send_message(message.chat.id, st.input_patronymic)
-    await state.set_state(RegState.INSERT_PATRONYMIC)
+    if not message.text.startswith('/'):
+        if await permanent_menu(message, state):
+            return
+        bot: Bot = message.bot
+        async with state.proxy() as data:
+            data['name'] = message.text
+        await bot.send_message(message.chat.id, st.input_patronymic)
+        await state.set_state(RegState.INSERT_PATRONYMIC)
 
 
 async def patronymic_input(message: Message, state: FSMContext):
-    if await permanent_menu(message, state):
-        return
-    bot: Bot = message.bot
-    async with state.proxy() as data:
-        data['patronymic'] = message.text
-    await bot.send_message(message.chat.id, st.input_birthday, reply_markup=await DatePicker().start_picker())
-    await state.set_state(RegState.NEUTRAL)
+    if not message.text.startswith('/'):
+        if await permanent_menu(message, state):
+            return
+        bot: Bot = message.bot
+        async with state.proxy() as data:
+            data['patronymic'] = message.text
+            business_type = data['is_business']
+        if business_type == 'partner' or business_type == 'ads':
+            await state.set_state(RegState.INSERT_ABOUT_BUSINESS)
+            if business_type == 'partner':
+                await bot.send_message(message.chat.id, st.about_partner_info)
+            else:
+                await bot.send_message(message.chat.id, st.about_ads_info)
+        else:
+            await bot.send_message(message.chat.id, st.input_birthday, reply_markup=await DatePicker().start_picker())
+            await state.set_state(RegState.NEUTRAL)
+
+
+async def info_about_business(message: Message, state: FSMContext):
+    if not message.text.startswith('/'):
+        bot: Bot = message.bot
+        async with state.proxy() as data:
+            business_type = data['is_business']
+            if business_type == 'partner':
+                await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
+                                       '[{} {} {}](tg://user?id={}) хочет стать партнером\!\n'
+                                       'В качестве данных о себе как о партнёре указал:\n{}'.format(
+                                           data['surname'], data['name'], data['patronymic'], data['user_id'],
+                                           await replace_markdown_marks(message.text)),
+                                       ParseMode.MARKDOWN_V2, message_thread_id=Env.NEW_PARTNER_THREAD_ID)
+            if business_type == 'ads':
+                await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
+                                       '[{} {} {}](tg://user?id={}) хотел бы сотрудничать как рекламодатель\n'
+                                       'В качестве данных о себе как об организации указал:\n*{}*'.format(
+                                           data['surname'], data['name'], data['patronymic'], data['user_id'],
+                                           await replace_markdown_marks(message.text)),
+                                       ParseMode.MARKDOWN_V2, message_thread_id=Env.NEW_ADS_THREAD_ID)
+        await bot.send_message(message.from_user.id, st.business_info_answer)
+        await state.finish()
 
 
 async def birthday_input(callback_query: CallbackQuery, callback_data: dict, state: FSMContext):
@@ -97,13 +148,14 @@ async def birthday_input(callback_query: CallbackQuery, callback_data: dict, sta
 
 
 async def about_input(message: Message, state: FSMContext):
-    if await permanent_menu(message, state):
-        return
-    bot: Bot = message.bot
-    async with state.proxy() as data:
-        data['about'] = message.text
-    await state.set_state(RegState.INSERT_CAR_PHOTO)
-    await bot.send_message(message.chat.id, st.input_car_photo)
+    if not message.text.startswith('/'):
+        if await permanent_menu(message, state):
+            return
+        bot: Bot = message.bot
+        async with state.proxy() as data:
+            data['about'] = message.text
+        await state.set_state(RegState.INSERT_CAR_PHOTO)
+        await bot.send_message(message.chat.id, st.input_car_photo)
 
 
 async def car_photo_input(message: Message, state: FSMContext):
@@ -142,13 +194,14 @@ async def non_russian_plate(callback_query: CallbackQuery, state: FSMContext):
 
 
 async def non_russian_plate_input(message: Message, state: FSMContext):
-    if await permanent_menu(message, state):
-        return
-    bot: Bot = message.bot
-    async with state.proxy() as data:
-        data['number_plate'] = message.text
-    await state.set_state(RegState.NEUTRAL)
-    await bot.send_message(message.chat.id, st.input_phone_number, reply_markup=await kb.get_phone_number())
+    if not message.text.startswith('/'):
+        if await permanent_menu(message, state):
+            return
+        bot: Bot = message.bot
+        async with state.proxy() as data:
+            data['number_plate'] = message.text
+        await state.set_state(RegState.NEUTRAL)
+        await bot.send_message(message.chat.id, st.input_phone_number, reply_markup=await kb.get_phone_number())
 
 
 async def phone_number_input(message: Message, state: FSMContext):
@@ -173,19 +226,21 @@ async def wanna_be_partner(callback_query: CallbackQuery, state: FSMContext):
 
 
 async def wanna_be_partner_input(message: Message, state: FSMContext):
-    if await permanent_menu(message, state):
-        return
-    bot: Bot = message.bot
-    async with state.proxy() as data:
-        data['partner'] = message.text
-        await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
-                               'Новый участник хочет стать партнером\!\n Это [{} {} {}](tg://user?id={})\nВ качестве '
-                               'данных о себе как о партнёре указал:\n{}'.format(
-                                   data['name'], data['surname'], data['patronymic'], data['user_id'], message.text),
-                               'MarkdownV2',
-                               message_thread_id=Env.NEW_PARTNER_THREAD_ID)
-    await state.set_state(RegState.NEUTRAL)
-    await bot.send_message(message.chat.id, st.end_registration, reply_markup=await kb.end_registration())
+    if not message.text.startswith('/'):
+        if await permanent_menu(message, state):
+            return
+        bot: Bot = message.bot
+        async with state.proxy() as data:
+            data['partner'] = message.text
+            await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
+                                   'Новый участник хочет стать партнером\!\n Это [{} {} {}](tg://user?id={})\n'
+                                   'В качестве данных о себе как о партнёре указал:\n{}'.format(
+                                       data['surname'], data['name'], data['patronymic'], data['user_id'],
+                                       await replace_markdown_marks(message.text)),
+                                   'MarkdownV2',
+                                   message_thread_id=Env.NEW_PARTNER_THREAD_ID)
+        await state.set_state(RegState.NEUTRAL)
+        await bot.send_message(message.chat.id, st.end_registration, reply_markup=await kb.end_registration())
 
 
 async def no_partner(callback_query: CallbackQuery, state: FSMContext):
@@ -216,6 +271,10 @@ async def end_registration(callback_query: CallbackQuery, state: FSMContext):
                            reply_markup=await kb.regular_user_start_menu())
 
 
+async def mock(message: Message, state: FSMContext):
+    pass
+
+
 def register_registration_handlers(dp: Dispatcher) -> None:
     # message handlers
     dp.register_message_handler(cmd_start, IsNotRegistered(), CommandStart())
@@ -237,11 +296,19 @@ def register_registration_handlers(dp: Dispatcher) -> None:
                                 state=RegState.INSERT_PARTNER_BUSINESS)
     dp.register_message_handler(help_question_input, IsNotRegistered(), content_types=[ContentType.TEXT],
                                 state=RegState.HELP_QUESTION)
+    dp.register_message_handler(info_about_business, IsNotRegistered(), content_types=[ContentType.TEXT],
+                                state=RegState.INSERT_ABOUT_BUSINESS)
+    dp.register_message_handler(mock, IsNotRegistered(), commands=['main_menu'])
 
     # callbacks
     dp.register_callback_query_handler(non_russian_plate, IsNotRegistered(), lambda l: l.data == "non_rus_plate",
                                        state=RegState.INSERT_NUMBER_PLATE)
-    dp.register_callback_query_handler(start_register, IsNotRegistered(), lambda l: l.data == "register")
+
+    dp.register_callback_query_handler(start_register, IsNotRegistered(),
+                                       lambda l: l.data == "register" or
+                                                 l.data == "register_partner"
+                                                 or l.data == "register_ads")
+
     dp.register_callback_query_handler(birthday_input, IsNotRegistered(), date_picker_callback.filter(),
                                        state=RegState.NEUTRAL)
     dp.register_callback_query_handler(wanna_be_partner, IsNotRegistered(), lambda l: l.data == "wanna_be_partner",

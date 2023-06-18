@@ -38,13 +38,13 @@ async def event_slider_callback(callback_query: CallbackQuery, callback_data: di
 async def off_events_notif(message: Message, state: FSMContext):
     await db.any_command("UPDATE users SET event_notif = false WHERE user_id = {}".format(message.from_user.id))
     await message.bot.send_message(message.chat.id, 'Уведомления отключены', reply_markup=await kb.event_menu(
-        db.get_user_event_notif_on(message.from_user.id)[0]))
+        db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def on_events_notif(message: Message, state: FSMContext):
     await db.any_command("UPDATE users SET event_notif = true WHERE user_id = {}".format(message.from_user.id))
     await message.bot.send_message(message.chat.id, 'Уведомления включены', reply_markup=await kb.event_menu(
-        db.get_user_event_notif_on(message.from_user.id)[0]))
+        db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def swear_check(message: Message, state: FSMContext):
@@ -71,19 +71,19 @@ async def swear_check(message: Message, state: FSMContext):
 async def event_menu(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await bot.send_message(message.from_user.id, 'Выберите пункт меню',
-                           reply_markup=await kb.event_menu(db.get_user_event_notif_on(message.from_user.id)[0]))
+                           reply_markup=await kb.event_menu(db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def off_events_notif(message: Message):
     await db.any_command("UPDATE users SET event_notif = false WHERE user_id = {}".format(message.from_user.id))
     await message.bot.send_message(message.chat.id, 'Уведомления отключены', reply_markup=await kb.event_menu(
-        db.get_user_event_notif_on(message.from_user.id)[0]))
+        db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def on_events_notif(message: Message):
     await db.any_command("UPDATE users SET event_notif = true WHERE user_id = {}".format(message.from_user.id))
     await message.bot.send_message(message.chat.id, 'Уведомления включены', reply_markup=await kb.event_menu(
-        db.get_user_event_notif_on(message.from_user.id)[0]))
+        db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def start_help(message: Message, state: FSMContext):
@@ -95,7 +95,6 @@ async def start_help(message: Message, state: FSMContext):
 async def help_question_input(message: Message, state: FSMContext):
     if message.text == '/main_menu':
         await state.finish()
-        await get_menu(message, state)
     else:
         bot: Bot = message.bot
         await bot.send_message(message.chat.id,
@@ -111,7 +110,8 @@ async def get_menu(message: Message, state: FSMContext):
     await state.finish()
     await message.bot.send_message(message.from_user.id, 'Возврат в главное меню',
                                    reply_markup=await kb.regular_user_start_menu())
-
+async def mock(message: Message, state: FSMContext):
+    pass
 
 def register_user_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(watch_events, IsRegularUserOrPlusUser(), content_types=['text'],
@@ -129,5 +129,5 @@ def register_user_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(help_question_input, IsRegularUserOrPlusUser(), content_types=[ContentType.TEXT],
                                 state=RegState.HELP_QUESTION)
     dp.register_message_handler(start_help, IsRegularUserOrPlusUser(), text='Получить помощь/Задать вопрос')
-    dp.register_message_handler(get_menu, IsRegularUserOnly(), commands=['main_menu'])
+    dp.register_message_handler(mock, IsRegularUserOnly(), commands=['main_menu'])
     # todo заказ одежды, натсроика реплик

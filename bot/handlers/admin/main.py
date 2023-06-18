@@ -98,7 +98,7 @@ async def add_plus_user_link_callback(message: Message, state: FSMContext):
 async def start_create_event(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await state.set_state(CrEv.INSERT_TITLE)
-    await bot.send_message(message.chat.id, 'Введите название грядущего мероприятия \(заголовок\)')
+    await bot.send_message(message.chat.id, 'Введите название грядущего мероприятия (заголовок)')
 
 
 async def event_title_input(message: Message, state: FSMContext):
@@ -106,7 +106,7 @@ async def event_title_input(message: Message, state: FSMContext):
     await state.set_state(CrEv.INSERT_DESCRIPTION)
     async with state.proxy() as data:
         data['title'] = message.text
-    await bot.send_message(message.chat.id, 'Введите подробное описание того\, что будет на этом мероприятии')
+    await bot.send_message(message.chat.id, 'Введите подробное описание того, что будет на этом мероприятии')
 
 
 async def event_description_input(message: Message, state: FSMContext):
@@ -142,8 +142,8 @@ async def event_date_input(callback_query: CallbackQuery, callback_data: Callbac
 
 async def event_time_input(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    if re.fullmatch(r'[012][0-9]:[0-5][0-9]', message.text) is not None:
-        await message.answer('Время учтено\!')
+    if re.fullmatch(r'[012]?[0-9]:[0-5][0-9]', message.text) is not None:
+        await message.answer('Время учтено!')
         async with state.proxy() as data:
             data['time'] = message.text
         async with state.proxy() as data:
@@ -154,7 +154,7 @@ async def event_time_input(message: Message, state: FSMContext):
                                reply_markup=await kb.end_create_event())
         await state.set_state(CrEv.FINISH_CREATE)
     else:
-        await message.answer('Время введено некорректно\!')
+        await message.answer('Время введено некорректно!')
 
 
 async def correct_event(callback_query: CallbackQuery, state: FSMContext):
@@ -288,19 +288,20 @@ async def birthday_menu(message: Message, state: FSMContext):
 async def event_menu(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await bot.send_message(message.from_user.id, 'Укажите пункт меню',
-                           reply_markup=await kb.event_admin_menu(db.get_user_event_notif_on(message.from_user.id)[0]))
+                           reply_markup=await kb.event_admin_menu(
+                               db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def off_events_notif(message: Message, state: FSMContext):
     await db.any_command("UPDATE users SET event_notif = false WHERE user_id = {}".format(message.from_user.id))
     await message.bot.send_message(message.chat.id, 'Уведомления отключены', reply_markup=await kb.event_admin_menu(
-        db.get_user_event_notif_on(message.from_user.id)[0]))
+        db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def on_events_notif(message: Message, state: FSMContext):
     await db.any_command("UPDATE users SET event_notif = true WHERE user_id = {}".format(message.from_user.id))
     await message.bot.send_message(message.chat.id, 'Уведомления включены', reply_markup=await kb.event_admin_menu(
-        db.get_user_event_notif_on(message.from_user.id)[0]))
+        db.get_one_user_event_notif_on(message.from_user.id)[0]))
 
 
 async def broadcast(message: Message, state: FSMContext):
@@ -324,8 +325,6 @@ async def broadcast_input(message: Message, state: FSMContext):
         else:
             await message.answer('Такие сообщения не допускаются к публикации!', ParseMode.HTML)
     else:
-        if message.text == '/main_menu':
-            await get_menu(message, state)
         await state.finish()
 
 
@@ -346,7 +345,6 @@ async def user_info_by_number_plate(message: Message, state: FSMContext):
 async def user_info_by_number_plate_input(message: Message, state: FSMContext):
     if message.text == '/main_menu':
         await state.finish()
-        await get_menu(message, state)
     else:
         bot: Bot = message.bot
         user = db.find_user_by_car(message.text)
@@ -369,23 +367,26 @@ async def user_info_by_fio(message: Message, state: FSMContext):
 
 
 async def user_info_by_fio_input(message: Message, state: FSMContext):
-    bot: Bot = message.bot
-    users = db.find_user(message.text.split())
-    global founded_users_dict
-    # sm = await state.get_state()
-    if await state.get_state() == 'AdminStates:EDIT_USER':
-        founded = await format_founded_users(users, '/edit\_user\_info\_id')
-        founded_users_dict = founded[1]
-        await state.set_state(AdSt.CHOICE_USER_EDIT)
-    if await state.get_state() == 'AdminStates:INSERT_USER_FIO':
-        founded = await format_founded_users(users, '/get\_user\_info\_id')
-        founded_users_dict = founded[1]
-        await state.set_state(AdSt.CHOICE_USER_INFO)
-    bot_me = await bot.send_message(message.from_user.id, founded[0], ParseMode.MARKDOWN_V2)
+    if message.text == '/main_menu':
+        bot: Bot = message.bot
+        users = db.find_user(message.text.split())
+        global founded_users_dict
+        # sm = await state.get_state()
+        if await state.get_state() == 'AdminStates:EDIT_USER':
+            founded = await format_founded_users(users, '/edit\_user\_info\_id')
+            founded_users_dict = founded[1]
+            await state.set_state(AdSt.CHOICE_USER_EDIT)
+        if await state.get_state() == 'AdminStates:INSERT_USER_FIO':
+            founded = await format_founded_users(users, '/get\_user\_info\_id')
+            founded_users_dict = founded[1]
+            await state.set_state(AdSt.CHOICE_USER_INFO)
+        bot_me = await bot.send_message(message.from_user.id, founded[0], ParseMode.MARKDOWN_V2)
 
-    async with state.proxy() as data:
-        data['list_users_msg'] = bot_me
-    if len(founded_users_dict) == 0:
+        async with state.proxy() as data:
+            data['list_users_msg'] = bot_me
+        if len(founded_users_dict) == 0:
+            await state.finish()
+    else:
         await state.finish()
 
 
@@ -482,7 +483,8 @@ async def all_users_info(message: Message, state: FSMContext):
                             caption='В данном файле содержится вся нужная информация о пользователях'
                             , parse_mode=ParseMode.HTML)
 
-
+async def mock(message: Message, state: FSMContext):
+    pass
 def register_admin_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(delete_plus_user_choice, IsAdminOrOwner(), IsNotificationGroupMessage(),
                                 commands=['delete_plus_user'])
@@ -508,7 +510,7 @@ def register_admin_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(edit_user_info_by_fio_link_choice, IsAdminOrOwner(),
                                 filters.RegexpCommandsFilter(regexp_commands=['edit_user_info_id([0-9]*)']),
                                 state=AdSt.CHOICE_USER_EDIT)
-    dp.register_message_handler(get_menu, IsAdminOrOwner(), commands=['main_menu'])
+    dp.register_message_handler(mock, IsAdminOrOwner(), commands=['main_menu'])
     # handlers to create an event
     dp.register_message_handler(event_title_input, IsAdminOrOwner(), content_types=['text'], state=CrEv.INSERT_TITLE)
     dp.register_message_handler(event_description_input, IsAdminOrOwner(), content_types=['text'],

@@ -3,9 +3,12 @@ from aiogram.utils.callback_data import CallbackData
 
 
 async def start_reg_message() -> InlineKeyboardMarkup:
-    kb = InlineKeyboardMarkup(row_width=1)
+    kb = InlineKeyboardMarkup(row_width=2)
     kb.row()
-    kb.insert(InlineKeyboardButton("Зарегистрироваться", callback_data='register'))
+    kb.insert(InlineKeyboardButton("Я бизнес-партнер", callback_data='register_partner'))
+    kb.insert(InlineKeyboardButton("Я рекламодатель", callback_data='register_ads'))
+    kb.row()
+    kb.insert(InlineKeyboardButton("Я участник клуба", callback_data='register'))
     return kb
 
 

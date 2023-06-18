@@ -12,5 +12,6 @@ async def register_all_commands(dp: Dispatcher):
          BotCommand('delete_admin', "Удаление админа ")
          ],
         BotCommandScopeChat(Env.NOTIFICATION_SUPER_GROUP_ID))
-    await dp.bot.set_my_commands([BotCommand('main_menu', "Возврат в главное меню")],
-                                 BotCommandScopeAllPrivateChats())
+    await dp.bot.set_my_commands(
+        [BotCommand('main_menu', "Возврат в главное меню \n (Только для зарегистрированных пользователей)")],
+        BotCommandScopeAllPrivateChats())

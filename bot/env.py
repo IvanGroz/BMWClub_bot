@@ -9,5 +9,6 @@ class Env(ABC):
     QUESTION_THREAD_ID = os.environ.get('QUESTION_THREAD_ID', 6)
     NEW_MEMBER_THREAD_ID = os.environ.get('NEW_MEMBER_THREAD_ID', 8)
     NEW_PARTNER_THREAD_ID = os.environ.get('NEW_PARTNER_THREAD_ID', 10)
+    NEW_ADS_THREAD_ID = os.environ.get('NEW_ADS_THREAD_ID', 438)
     SECRET_PASSWORD = os.environ.get('SECRET_PASSWORD', '3487bmw_club-passw037tyfggfdsz')
     CONNECTION_URL = os.environ.get('CONNECTION_URL', 'postgresql://postgres:1824@localhost:5432/BMW_Club_NSK')
