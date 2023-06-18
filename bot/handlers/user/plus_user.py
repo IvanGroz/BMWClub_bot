@@ -49,7 +49,6 @@ async def birthday_find_by_fio_input(message: Message, state: FSMContext):
         data['list_users_msg'] = bot_me
     if len(founded_users_dict) == 0:
         await state.finish()
-    # todo выдача пользователй ДР по ФИО
 
 
 async def birthday_find_link_callback(message: Message, state: FSMContext):

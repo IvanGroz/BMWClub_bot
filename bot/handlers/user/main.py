@@ -130,4 +130,4 @@ def register_user_handlers(dp: Dispatcher) -> None:
                                 state=RegState.HELP_QUESTION)
     dp.register_message_handler(start_help, IsRegularUserOrPlusUser(), text='Получить помощь/Задать вопрос')
     dp.register_message_handler(mock, IsRegularUserOnly(), commands=['main_menu'])
-    # todo заказ одежды, натсроика реплик
+
