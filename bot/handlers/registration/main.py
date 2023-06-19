@@ -99,7 +99,12 @@ async def patronymic_input(message: Message, state: FSMContext):
         bot: Bot = message.bot
         async with state.proxy() as data:
             data['patronymic'] = message.text
-            business_type = data['is_business']
+            business_type: str = ''
+            try:
+                business_type = data['is_business']
+            except KeyError:
+                pass
+
         if business_type == 'partner' or business_type == 'ads':
             await state.set_state(RegState.INSERT_ABOUT_BUSINESS)
             if business_type == 'partner':
@@ -115,7 +120,11 @@ async def info_about_business(message: Message, state: FSMContext):
     if not message.text.startswith('/'):
         bot: Bot = message.bot
         async with state.proxy() as data:
-            business_type = data['is_business']
+            business_type: str = ''
+            try:
+                business_type = data['is_business']
+            except KeyError:
+                pass
             if business_type == 'partner':
                 await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID,
                                        '[{} {} {}](tg://user?id={}) хочет стать партнером\!\n'
