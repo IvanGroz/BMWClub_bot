@@ -1,20 +1,20 @@
+import asyncio
 import datetime
 import re
 
 from aiogram import Dispatcher, Bot
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters import *
-from aiogram.dispatcher.filters.state import StatesGroup
 from aiogram.types import *
 
 import bot.keyboards as kb
-import bot.strings as st
+import bot.res.strings as st
 from bot.database import database as conn
 from bot.env import Env
 from bot.filters.main import IsNotRegistered
 from bot.keyboards.date_picker import date_picker_callback, DatePicker
 from bot.misc.formatting import replace_markdown_marks
-from bot.states import RegisterUser as RegState
+from bot.res.states import RegisterUser as RegState
 
 
 async def cmd_start(message: Message):
@@ -64,10 +64,11 @@ async def help_question_input(message: Message, state: FSMContext):
     bot: Bot = message.bot
     if message.text != 'Получить помощь по регистрации' and message.text != 'Допустил ошибку/Начать заново':
         await bot.send_message(message.chat.id, st.registration_help_answer)
-        await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
+        msg = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
                                reply_markup=await kb.question_answer(message.from_user.id))
-
         await state.finish()
+        await asyncio.sleep(169200)  # 47 часов спустя удалять обращение
+        await bot.delete_message(chat_id=Env.NOTIFICATION_SUPER_GROUP_ID, message_id=msg.message_id)
 
 
 async def surname_input(message: Message, state: FSMContext):

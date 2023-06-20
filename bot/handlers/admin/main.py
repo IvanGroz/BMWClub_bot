@@ -1,4 +1,3 @@
-import calendar
 import re
 
 from aiogram import Bot
@@ -17,10 +16,10 @@ from bot.misc.anti_swearing import is_swearing
 from bot.misc.formatting import *
 from bot.database import database as db
 import bot.keyboards as kb
-from bot.states import CreateEvent as CrEv
-from bot.states import EditEvent as EdEv
-from bot.states import UpdatePermissions as UpPe
-from bot.states import AdminStates as AdSt
+from bot.res.states import CreateEvent as CrEv
+from bot.res.states import EditEvent as EdEv
+from bot.res.states import UpdatePermissions as UpPe
+from bot.res.states import AdminStates as AdSt
 
 founded_users_dict: dict
 

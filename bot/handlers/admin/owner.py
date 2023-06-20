@@ -1,13 +1,11 @@
-from aiogram import Bot, Dispatcher
-from aiogram.dispatcher import FSMContext, filters
-from aiogram.dispatcher.filters.state import StatesGroup
+from aiogram import Bot
+from aiogram.dispatcher import filters
 from aiogram.types import *
 import bot.keyboards as kb
-from bot.env import Env
 from bot.filters.main import *
 from bot.database import database as db
 from bot.misc.formatting import format_founded_users
-from bot.states import UpdatePermissions as UpPe
+from bot.res.states import UpdatePermissions as UpPe
 
 founded_users_dict: dict
 

@@ -1,5 +1,3 @@
-import logging
-
 from bot import start_bot
 
 if __name__ == '__main__':

@@ -8,7 +8,7 @@ from bot.keyboards import birthday_slider
 from bot.keyboards.birthday_slider import BirthdaySlider
 from bot.misc.formatting import format_birthday, format_founded_users, format_birthday_by_fio
 import bot.keyboards as kb
-from bot.states import AdminStates as AdSt
+from bot.res.states import AdminStates as AdSt
 
 slider: BirthdaySlider
 
@@ -61,6 +61,7 @@ async def birthday_find_link_callback(message: Message, state: FSMContext):
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
     await bot.send_message(message.chat.id, text, ParseMode.MARKDOWN_V2)
     await bot.delete_message(message.chat.id, message.message_id)
+    await state.finish()
 
 
 async def off_birthday_notif(message: Message, state: FSMContext):
@@ -86,8 +87,11 @@ async def birthday_menu(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id, 'Укажите пункт меню',
                            reply_markup=await kb.birthday_menu(db.get_user_birthday_notif_on(message.from_user.id)[0]))
 
+
 async def mock(message: Message, state: FSMContext):
     pass
+
+
 def register_user_plus_handlers(dp: Dispatcher) -> None:
     # handlers
     dp.register_message_handler(birthday_slider_start, IsPlusUserOrAdminOrOwner(), content_types=['text'],
@@ -100,7 +104,7 @@ def register_user_plus_handlers(dp: Dispatcher) -> None:
                                 text='Включить уведомления о ДР')
     dp.register_message_handler(birthday_find_by_fio_input, IsPlusUserOrAdminOrOwner(), content_types=['text'],
                                 state=AdSt.INSERT_USER_FIO_BIRTHDAY)
-    dp.register_message_handler(birthday_find_link_callback, IsAdminOrOwner(),
+    dp.register_message_handler(birthday_find_link_callback, IsPlusUserOrAdminOrOwner(),
                                 filters.RegexpCommandsFilter(regexp_commands=['get_birthday_by_id([0-9]*)']),
                                 state=AdSt.GET_BIRTHDAY_FIO)
     dp.register_message_handler(mock, IsPlusUserOnly(), commands=['main_menu'])

@@ -1,6 +1,5 @@
 from aiogram import Bot
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from apscheduler.triggers.base import BaseTrigger
 
 from bot.database import database
 from bot.misc.formatting import *

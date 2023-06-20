@@ -1,17 +1,17 @@
-import datetime
+import asyncio
 import time
 
 from aiogram import Bot
 from aiogram.types import *
 
 import bot.keyboards as kb
-import bot.strings as st
+import bot.res.strings as st
 from bot.database import database as db
 from bot.filters.main import *
 from bot.keyboards.events_slider import EventsSlider, event_slider_callback_data
 from bot.misc.anti_swearing import is_swearing, censoring_text
 from bot.misc.formatting import format_event_extended
-from bot.states import RegisterUser as RegState
+from bot.res.states import RegisterUser as RegState
 
 
 async def watch_events(message: Message, state: FSMContext):
@@ -93,25 +93,29 @@ async def start_help(message: Message, state: FSMContext):
 
 
 async def help_question_input(message: Message, state: FSMContext):
-    if message.text == '/main_menu':
-        await state.finish()
-    else:
-        bot: Bot = message.bot
-        await bot.send_message(message.chat.id,
-                               "Ваш вопрос принят.\nОжидайте, скоро наши администраторы свяжутся с вами",
-                               ParseMode.HTML)
-        await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
-                               reply_markup=await kb.question_answer(message.from_user.id), parse_mode=ParseMode.HTML)
+    bot: Bot = message.bot
+    await bot.send_message(message.chat.id,
+                           "Ваш вопрос принят.\nОжидайте, скоро наши администраторы свяжутся с вами",
+                           ParseMode.HTML)
+    msg = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text,
+                                 message_thread_id=Env.QUESTION_THREAD_ID,
+                                 reply_markup=await kb.question_answer(message.from_user.id),
+                                 parse_mode=ParseMode.HTML)
 
     await state.finish()
+    await asyncio.sleep(169200)  # 47 часов спустя удалять обращение
+    await bot.delete_message(chat_id=Env.NOTIFICATION_SUPER_GROUP_ID, message_id=msg.message_id)
 
 
 async def get_menu(message: Message, state: FSMContext):
     await state.finish()
     await message.bot.send_message(message.from_user.id, 'Возврат в главное меню',
                                    reply_markup=await kb.regular_user_start_menu())
+
+
 async def mock(message: Message, state: FSMContext):
     pass
+
 
 def register_user_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(watch_events, IsRegularUserOrPlusUser(), content_types=['text'],
@@ -130,4 +134,3 @@ def register_user_handlers(dp: Dispatcher) -> None:
                                 state=RegState.HELP_QUESTION)
     dp.register_message_handler(start_help, IsRegularUserOrPlusUser(), text='Получить помощь/Задать вопрос')
     dp.register_message_handler(mock, IsRegularUserOnly(), commands=['main_menu'])
-
