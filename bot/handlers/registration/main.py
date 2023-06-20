@@ -64,8 +64,9 @@ async def help_question_input(message: Message, state: FSMContext):
     bot: Bot = message.bot
     if message.text != 'Получить помощь по регистрации' and message.text != 'Допустил ошибку/Начать заново':
         await bot.send_message(message.chat.id, st.registration_help_answer)
-        msg = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text, message_thread_id=Env.QUESTION_THREAD_ID,
-                               reply_markup=await kb.question_answer(message.from_user.id))
+        msg = await bot.send_message(Env.NOTIFICATION_SUPER_GROUP_ID, message.text,
+                                     message_thread_id=Env.QUESTION_THREAD_ID,
+                                     reply_markup=await kb.question_answer(message.from_user.id))
         await state.finish()
         await asyncio.sleep(169200)  # 47 часов спустя удалять обращение
         await bot.delete_message(chat_id=Env.NOTIFICATION_SUPER_GROUP_ID, message_id=msg.message_id)
@@ -309,7 +310,8 @@ def register_registration_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(info_about_business, IsNotRegistered(), content_types=[ContentType.TEXT],
                                 state=RegState.INSERT_ABOUT_BUSINESS)
     dp.register_message_handler(mock, IsNotRegistered(), commands=['main_menu'])
-
+    dp.register_message_handler(permanent_menu, IsNotRegistered(), content_types=[ContentType.TEXT],
+                                state=RegState.NEUTRAL)
     # callbacks
     dp.register_callback_query_handler(non_russian_plate, IsNotRegistered(), lambda l: l.data == "non_rus_plate",
                                        state=RegState.INSERT_NUMBER_PLATE)
@@ -318,7 +320,6 @@ def register_registration_handlers(dp: Dispatcher) -> None:
                                        lambda l: l.data == "register" or
                                                  l.data == "register_partner"
                                                  or l.data == "register_ads")
-
     dp.register_callback_query_handler(birthday_input, IsNotRegistered(), date_picker_callback.filter(),
                                        state=RegState.NEUTRAL)
     dp.register_callback_query_handler(wanna_be_partner, IsNotRegistered(), lambda l: l.data == "wanna_be_partner",

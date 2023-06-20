@@ -2,14 +2,14 @@ import datetime
 
 
 async def format_birthday(birthdays, day) -> str:
-    text: str = 'В эту дату\, день рождения у:'
+    text: str = 'В эту дату\, день рождения у:\n'
     if len(birthdays[day][0]) != 0:
         for birthday in birthdays[day][0]:  # [номер дня][0 - пользователи , 1 - дата (месяц и день)]
-            text += '\n[{} {} {}](tg://user?id={})\, исполняется {} '.format(birthday[1],
-                                                                             birthday[2],
-                                                                             birthday[3],
-                                                                             birthday[0],
-                                                                             birthday[4])
+            text += '\n[{} {} {}](tg://user?id={})\, исполняется {} \n'.format(birthday[1],
+                                                                               birthday[2],
+                                                                               birthday[3],
+                                                                               birthday[0],
+                                                                               birthday[4])
     else:
         text = 'В этот день ни у кого дня рождения нет\!'
     return text

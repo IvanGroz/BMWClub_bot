@@ -196,7 +196,7 @@ async def get_list_event(all: bool = False):
         return cur.fetchall()
 
 
-async def get_tomorrow_event():
+async def get_tomorrow_events():
     date = datetime.date.today() + datetime.timedelta(days=1)
     with conn.cursor() as cur:
         cur.execute("SELECT * from events WHERE date = '{}'".format(date.strftime('%Y-%m-%d')))

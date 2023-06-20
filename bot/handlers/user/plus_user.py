@@ -19,7 +19,7 @@ async def birthday_slider_start(message: Message):
     text: str = await format_birthday(birthdays, 0)
     global slider
     slider = BirthdaySlider(birthdays)
-    await bot.send_message(message.chat.id, text, 'MarkdownV2', reply_markup=await slider.get_slider_markup())
+    await bot.send_message(message.chat.id, text, ParseMode.MARKDOWN_V2, reply_markup=await slider.get_slider_markup())
 
 
 async def birthday_slider_callback(callback_query: CallbackQuery, callback_data: dict, state: FSMContext):

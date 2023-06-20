@@ -46,7 +46,7 @@ async def add_admin_link_callback(message: Message, state: FSMContext):
                          ParseMode.MARKDOWN_V2)
     await bot.delete_message(message.chat.id, message.message_id)
     await state.finish()
-    await bot.send_message(user_id, 'Поздравляю Вы были назначены администратором бота',
+    await bot.send_message(user_id, 'Поздравляю!! Вы были назначены администратором бота.', ParseMode.MARKDOWN_V2,
                            reply_markup=await kb.admin_menu())
 
 

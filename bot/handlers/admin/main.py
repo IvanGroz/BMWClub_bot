@@ -4,7 +4,7 @@ from aiogram import Bot
 from aiogram.dispatcher import filters
 from aiogram.types import *
 from aiogram.utils.callback_data import CallbackData
-from aiogram.utils.exceptions import ChatNotFound
+from aiogram.utils.exceptions import ChatNotFound, BadRequest
 
 from bot.database.methods.import_in_file import get_all_users_info
 from bot.filters.main import *
@@ -26,9 +26,11 @@ founded_users_dict: dict
 
 async def choice_new_plus_user_add(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    await message.answer('Введите Фамилию Имя Отчество, того человека которого хотите назначить админом '
-                         '(Вводить нужно именно в указанном выше порядке в случае если не известна,'
-                         ' например , фамилия, то пишите: Нет Иван Иванов и т.п.)', ParseMode.HTML)
+    msg = await message.answer('Введите Фамилию Имя Отчество, того человека которого хотите назначить пользователем+ '
+                               '(Вводить нужно именно в указанном выше порядке в случае если не известна,'
+                               ' например , фамилия, то пишите: Нет Иван Иванов и т.п.)', ParseMode.HTML)
+    async with state.proxy() as data:
+        data['info_input_msg_id'] = msg.message_id
     await state.set_state(UpPe.INSERT_USER_PLUS_FIO)
 
 
@@ -43,6 +45,8 @@ async def input_new_user_plus_fio(message: Message, state: FSMContext):
     await bot.delete_message(message.chat.id, message.message_id)
     async with state.proxy() as data:
         data['list_users_mes'] = bot_me
+        msg_id = data['info_input_msg_id']
+        await bot.delete_message(Env.NOTIFICATION_SUPER_GROUP_ID, msg_id)
     if len(founded_users_dict) == 0:
         await state.finish()
 
@@ -318,7 +322,7 @@ async def broadcast_input(message: Message, state: FSMContext):
             for user_id in user_ids:
                 try:
                     mes_pin = await message.bot.send_message(user_id[0], "<b>Важное объявление!</b>\n" + message.text,
-                                                            ParseMode.HTML)
+                                                             ParseMode.HTML)
                     await message.bot.pin_chat_message(user_id[0], mes_pin.message_id, True)
                 except ChatNotFound:
                     pass
@@ -396,8 +400,11 @@ async def edit_user_info_by_fio_link_choice(message: Message, state: FSMContext)
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
         data['edit_user_id'] = user_id
     text, file_id = await user_info(user)
-    await bot.send_photo(message.from_user.id, file_id, text,
-                         parse_mode=ParseMode.HTML)  # Тут описание найденного пользователя
+    try:
+        await bot.send_photo(message.from_user.id, file_id, text, parse_mode=ParseMode.HTML)
+    except BadRequest:
+        await bot.send_message(message.from_user.id, "К сожалению фотографию найти не удалось ((\n" + text,
+                               ParseMode.HTML)
     await bot.send_message(message.chat.id, "Выберите поле которое хотите отредактировать\n"
                                             "1.Дата рождения\n"
                                             "2.Номер телефона\n"
@@ -468,7 +475,11 @@ async def user_info_by_fio_link_choice(message: Message, state: FSMContext):
         list_users_mes = data['list_users_msg']
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
     text, file_id = await user_info(user)
-    await bot.send_photo(message.from_user.id, file_id, text, parse_mode=ParseMode.HTML)
+    try:
+        await bot.send_photo(message.from_user.id, file_id, text, parse_mode=ParseMode.HTML)
+    except BadRequest:
+        await bot.send_message(message.from_user.id, "К сожалению фотографию найти не удалось ((\n" + text,
+                               ParseMode.HTML)
     await bot.delete_message(message.chat.id, message.message_id)
     await state.finish()
 
