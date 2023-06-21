@@ -12,9 +12,11 @@ founded_users_dict: dict
 
 async def choice_new_admin_add(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    await message.answer('Введите Фамилию Имя Отчество, того человека которого хотите назначить админом '
-                         '(Вводить нужно именно в указанном выше порядке в случае если не известна,'
-                         ' например , фамилия, то пишите: Нет Иван Иванов и т.п.)', ParseMode.HTML)
+    msg = await message.answer('Введите Фамилию Имя Отчество, того человека которого хотите назначить админом '
+                               '(Вводить нужно именно в указанном выше порядке в случае если не известна,'
+                               ' например , фамилия, то пишите: Нет Иван Иванов и т.п.)', ParseMode.HTML)
+    async with state.proxy() as data:
+        data['info_input_msg_id'] = msg.message_id
     await state.set_state(UpPe.INSERT_ADMIN_FIO)
 
 
@@ -29,6 +31,8 @@ async def input_new_admin_fio(message: Message, state: FSMContext):
     await bot.delete_message(message.chat.id, message.message_id)
     async with state.proxy() as data:
         data['list_users_mes'] = bot_me
+        msg_id = data['info_input_msg_id']
+        await bot.delete_message(Env.NOTIFICATION_SUPER_GROUP_ID, msg_id)
     if len(founded_users_dict) == 0:
         await state.finish()
 
@@ -46,7 +50,7 @@ async def add_admin_link_callback(message: Message, state: FSMContext):
                          ParseMode.MARKDOWN_V2)
     await bot.delete_message(message.chat.id, message.message_id)
     await state.finish()
-    await bot.send_message(user_id, 'Поздравляю!! Вы были назначены администратором бота.', ParseMode.MARKDOWN_V2,
+    await bot.send_message(user_id, 'Поздравляю!! Вы были назначены администратором бота.', ParseMode.HTML,
                            reply_markup=await kb.admin_menu())
 
 

@@ -492,6 +492,13 @@ async def all_users_info(message: Message, state: FSMContext):
                             , parse_mode=ParseMode.HTML)
 
 
+async def send_instructions(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    await bot.send_document(message.chat.id, open(r'Instructions.txt', 'rb'),
+                            caption='В данном файле содержится вся нужная информация о работе с ботом'
+                            , parse_mode=ParseMode.HTML)
+
+
 async def mock(message: Message, state: FSMContext):
     pass
 
@@ -557,6 +564,7 @@ def register_admin_handlers(dp: Dispatcher) -> None:
     dp.register_message_handler(birthday_menu, IsAdminOrOwner(), text='Дни рождения')
     dp.register_message_handler(broadcast, IsAdminOrOwner(), text='Рассылка')
     dp.register_message_handler(event_menu, IsAdminOrOwner(), text='Мероприятия клуба')
+    dp.register_message_handler(send_instructions, IsAdminOrOwner(), text='Инструкции')
     dp.register_message_handler(users_info_menu, IsAdminOrOwner(), text='Информация о пользователях')
     dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'],
                                 text='Редактировать пользователя')
