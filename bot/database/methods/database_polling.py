@@ -9,7 +9,7 @@ async def start_process_db_polling(bot: Bot):
     scheduler = AsyncIOScheduler(timezone='Asia/Novosibirsk')
     scheduler.add_job(send_birthday_notif, trigger='cron', hour=11, minute=0, start_date=datetime.datetime.now(),
                       kwargs={'bot': bot})
-    scheduler.add_job(send_event_notification, trigger='cron', hour=4, minute=46, start_date=datetime.datetime.now(),
+    scheduler.add_job(send_event_notification, trigger='cron', hour=13, minute=00, start_date=datetime.datetime.now(),
                       kwargs={'bot': bot})
     scheduler.add_job(reset_swearing, 'interval', weeks=1)
     scheduler.start()
