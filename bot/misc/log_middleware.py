@@ -32,7 +32,7 @@ class LogMiddleware(BaseMiddleware):
             if await IsPlusUserOnly().check(message):
                 await plus_user.get_menu(message=message, state=state)
             if await IsNotRegistered().check(message):
-                await registr.get_menu(message, state)
+                await registr.get_menu(message)
             raise CancelHandler()
 
         print(handler.__name__)

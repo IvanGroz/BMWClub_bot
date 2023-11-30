@@ -27,6 +27,8 @@ class DatePicker:
             inline_kb.insert(InlineKeyboardButton(
                 str(value),
                 callback_data=date_picker_callback.new("SET-YEAR", value, -1, -1)
+                if value < datetime.now().year - 14 else ignore_callback
+                # делаем года будущего и тем кому еще нет 14ти не кликабельными
             ))
         # nav buttons
         inline_kb.row()
@@ -38,7 +40,13 @@ class DatePicker:
             '>>',
             callback_data=date_picker_callback.new("NEXT-YEARS", year, -1, -1)
         ))
-
+        # не вводить год
+        inline_kb.row()
+        inline_kb.insert(InlineKeyboardButton(
+            'Не указывать год',
+            callback_data=date_picker_callback.new("NO-YEAR", -2, -1, -1)
+            # todo обработка нет года
+        ))
         return inline_kb
 
     async def _get_month_kb(self, year: int) -> InlineKeyboardMarkup:
@@ -47,7 +55,7 @@ class DatePicker:
         inline_kb.row()
         inline_kb.insert(InlineKeyboardButton(" ", callback_data=ignore_callback))
         inline_kb.insert(InlineKeyboardButton(
-            str(year),
+            str(year) if year != -2 else "Назад",  # для случая если год решили не указывать
             callback_data=date_picker_callback.new("START", year, -1, -1)
         ))
         inline_kb.insert(InlineKeyboardButton(" ", callback_data=ignore_callback))
@@ -99,6 +107,8 @@ class DatePicker:
             await query.answer(cache_time=60)
         if callback_data['act'] == "SET-YEAR":
             await query.message.edit_reply_markup(await self._get_month_kb(int(callback_data['year'])))
+        if callback_data['act'] == "NO-YEAR":  # todo продумать
+            await query.message.edit_reply_markup(await self._get_month_kb(int(callback_data['year'])))
         if callback_data['act'] == "PREV-YEARS":
             new_year = int(callback_data['year']) - 5
             await query.message.edit_reply_markup(await self.start_picker(new_year))
@@ -106,12 +116,13 @@ class DatePicker:
             new_year = int(callback_data['year']) + 5
             await query.message.edit_reply_markup(await self.start_picker(new_year))
         if callback_data['act'] == "START":
-            await query.message.edit_reply_markup(await self.start_picker(int(callback_data['year'])))
+            await query.message.edit_reply_markup(await self.start_picker())
         if callback_data['act'] == "SET-MONTH":
             await query.message.edit_reply_markup(
                 await self._get_days_kb(int(callback_data['year']), int(callback_data['month'])))
         if callback_data['act'] == "SET-DAY":
             await query.message.delete_reply_markup()  # удаление инлайн-клавиатуры
-            return_data = True, datetime(int(callback_data['year']), int(callback_data['month']),
+            year = int(callback_data['year'])
+            return_data = True, datetime(year if year != -2 else 1, int(callback_data['month']),
                                          int(callback_data['day']))
         return return_data

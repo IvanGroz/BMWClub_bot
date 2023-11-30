@@ -22,7 +22,7 @@ async def cmd_start(message: Message):
     await bot.send_message(message.chat.id, st.start_response, reply_markup=await kb.start_reg_message())
 
 
-async def get_menu(message: Message, state: FSMContext):
+async def get_menu(message: Message):
     await message.bot.send_message(message.from_user.id, 'Меню открыто', reply_markup=await kb.registration_menu())
 
 
@@ -148,10 +148,12 @@ async def info_about_business(message: Message, state: FSMContext):
 async def birthday_input(callback_query: CallbackQuery, callback_data: dict, state: FSMContext):
     if await permanent_menu(callback_query.message, state):
         return
-    date: datetime
+    date: datetime.datetime
     selected, date = await DatePicker().process_selection(callback_query, callback_data)
     if selected:
-        await callback_query.message.answer(f'Вы выбрали: {date.strftime("%Y-%m-%d")}')
+        month_and_days: str = DatePicker.months[date.month] + date.strftime(". %d")
+        await callback_query.message.answer(
+            f'Вы выбрали: {date.strftime("%Y "+ month_and_days) if date.year != 1 else month_and_days}')
         async with state.proxy() as data:
             data['birthday'] = date
         await state.set_state(RegState.INSERT_ABOUT)
@@ -318,8 +320,8 @@ def register_registration_handlers(dp: Dispatcher) -> None:
 
     dp.register_callback_query_handler(start_register, IsNotRegistered(),
                                        lambda l: l.data == "register" or
-                                                 l.data == "register_partner"
-                                                 or l.data == "register_ads")
+                                                 l.data == "register_partner" or
+                                                 l.data == "register_ads")
     dp.register_callback_query_handler(birthday_input, IsNotRegistered(), date_picker_callback.filter(),
                                        state=RegState.NEUTRAL)
     dp.register_callback_query_handler(wanna_be_partner, IsNotRegistered(), lambda l: l.data == "wanna_be_partner",

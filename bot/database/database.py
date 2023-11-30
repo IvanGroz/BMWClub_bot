@@ -26,7 +26,7 @@ async def add_user(state: FSMContext):
                    data['name'],
                    data['surname'],
                    data['patronymic'],
-                   birthday.strftime('%Y-%m-%d'),
+                   birthday.strftime('%Y-%m-%d') if birthday.year != 1 else birthday.strftime('%m-%d'),
                    data['about'],
                    data['photo'],
                    data['number_plate'],
