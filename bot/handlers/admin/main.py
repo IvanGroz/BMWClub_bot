@@ -368,7 +368,8 @@ async def user_info_by_fio(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id,
                            'Введите ФИО пользователя, если не знаете Фамилию,'
                            ' то поиск можно вести по имени или отчеству,\n '
-                           '<b>{Нет}[пробел]{Имя}</b>\n или \n<b>{Нет}[пробел]{Нет}[пробел]{Отчество}</b>, соответственно',
+                           '<b>{Нет}[пробел]{Имя}</b>\n или \n<b>{Нет}[пробел]{Нет}[пробел]{Отчество}</b>, соответственно\n\n'
+                           'Если хотите вывести всех пользователей то напишите просто: Нет',
                            ParseMode.HTML)
     if message.text == 'Редактировать пользователя':
         await state.set_state(AdSt.EDIT_USER)
@@ -508,8 +509,10 @@ async def all_users_info(message: Message, state: FSMContext):
 
 async def send_instructions(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    await bot.send_document(message.chat.id, open(r'Instructions.txt', 'rb'),
-                            caption='В данном файле содержится вся нужная информация о работе с ботом'
+    await message.answer("Загружаю...")
+    await bot.send_document(message.chat.id, open(r'Instruction.docx', 'rb'),
+                            caption='В данном файле содержится вся нужная информация о работе с ботом.\n (Открывать '
+                                    'желательно Word с ПК)'
                             , parse_mode=ParseMode.HTML)
 
 

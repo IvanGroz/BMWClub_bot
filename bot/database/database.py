@@ -141,7 +141,7 @@ def delete_plus_user(user_id):
 
 
 def find_user(data_fio: list):
-    sql_command: str = "select user_id,surname,first_name,patronymic from users where "
+    sql_command: str = "select user_id, surname, first_name, patronymic from users where "
     if data_fio[0].lower() != 'нет':
         sql_command += "surname = '{}'".format(data_fio[0])
     if len(data_fio) > 1:
@@ -153,6 +153,8 @@ def find_user(data_fio: list):
             if data_fio[1].lower() != 'нет' and data_fio[0].lower() != 'нет':
                 sql_command += " and "
             sql_command += "patronymic = '{}'".format(data_fio[2])
+    else:
+        sql_command = "select user_id, surname, first_name, patronymic from users"
     with conn.cursor() as cur:
         cur.execute(sql_command)
         return cur.fetchall()
