@@ -48,8 +48,8 @@ async def birthday_menu(notif_on) -> ReplyKeyboardMarkup:
 
 async def event_admin_menu(notif_on) -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
-    kb.row(KeyboardButton('Ближайшие мероприятия'),
-           KeyboardButton('Отключить уведомления' if notif_on[0] else 'Включить уведомления'))
+    kb.row(KeyboardButton('Все мероприятия (Включая прошедшие)'))
+    kb.row(KeyboardButton('Отключить уведомления' if notif_on[0] else 'Включить уведомления'))
     kb.row(KeyboardButton('Создать мероприятие'))
     return kb
 
@@ -65,6 +65,9 @@ async def users_info_menu() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(
         KeyboardButton('Найти пользователя по Гос.Номеру'),
+    )
+    kb.row(
+
         KeyboardButton('Найти пользователя по ФИО')
     )
     kb.row(KeyboardButton('Получить данные о всех пользователях'))

@@ -112,6 +112,9 @@ class DatePicker:
                 await self._get_days_kb(int(callback_data['year']), int(callback_data['month'])))
         if callback_data['act'] == "SET-DAY":
             await query.message.delete_reply_markup()  # удаление инлайн-клавиатуры
+            print("birthday_input \n" + datetime.now().strftime('[%Y-%m-%d]:[%H-%M]') + " idUser:" +
+                  str(query.from_user.id) + "picked data:" + callback_data['year'] + "-" + callback_data[
+                      'month'] + "-" + callback_data['day'])
             return_data = True, datetime(int(callback_data['year']), int(callback_data['month']),
                                          int(callback_data['day']))
         return return_data

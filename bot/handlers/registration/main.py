@@ -185,6 +185,7 @@ async def number_plate_input(message: Message, state: FSMContext):
     if await permanent_menu(message, state):
         return
     bot: Bot = message.bot
+    message.text = message.text.upper()
     if (re.fullmatch(r'[АВЕКМНОРСТУХ]\d{3}[АВЕКМНОРСТУХ]{2}-\d{2,3}', message.text) is not None) or (
             re.fullmatch(r'[ABEKMHOPCTYX]\d{3}[ABEKMHOPCTYX]{2}-\d{2,3}', message.text) is not None):
         async with state.proxy() as data:

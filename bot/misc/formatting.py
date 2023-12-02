@@ -55,9 +55,9 @@ async def format_event(title: str, date: datetime.datetime, time: datetime.time 
                        description: str) -> str:
     text: str = title + '\n'
     text += '\nЛокация: ' + location
-    text += '\n\nВремя: ' + date.strftime('%m/%d')
+    text += '\n\nВремя: ' + date.strftime('%Y-%m-%d')
     if type(time) == datetime.time:
-        text += ',' + time.strftime('%H:%M')
+        text += ', ' + time.strftime('%H:%M')
     else:
         text += ',' + time
     text += '\n\nОписание:\n' + description

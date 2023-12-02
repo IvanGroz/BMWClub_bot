@@ -16,15 +16,18 @@ from bot.res.states import RegisterUser as RegState
 
 async def watch_events(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    list_event = await db.get_list_event(False)
+    list_event: list = await db.get_list_event(False)
 
     event_slider_user = EventsSlider(list_event, message.from_user.id)
-    await bot.send_message(message.chat.id,
-                           await format_event_extended(list_event[0][1], list_event[0][2], list_event[0][3],
-                                                       list_event[0][4], list_event[0][5], list_event[0][6]),
-                           ParseMode.HTML,
-                           reply_markup=await event_slider_user.get_slider_markup()
-                           )
+    if len(list_event) == 0:
+        await bot.send_message(message.chat.id, "На ближайшее время мероприятий не запланировано!")
+    else:
+        await bot.send_message(message.chat.id,
+                               await format_event_extended(list_event[0][1], list_event[0][2], list_event[0][3],
+                                                           list_event[0][4], list_event[0][5], list_event[0][6]),
+                               ParseMode.HTML,
+                               reply_markup=await event_slider_user.get_slider_markup()
+                               )
 
 
 async def event_slider_callback(callback_query: CallbackQuery, callback_data: dict, state: FSMContext):
@@ -88,7 +91,7 @@ async def on_events_notif(message: Message):
 
 async def start_help(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    await bot.send_message(message.chat.id, st.registration_help, ParseMode.HTML)
+    await bot.send_message(message.chat.id, st.registration_help, ParseMode.HTML , reply_markup=ReplyKeyboardRemove())
     await state.set_state(RegState.HELP_QUESTION)
 
 

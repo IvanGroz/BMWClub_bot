@@ -38,6 +38,12 @@ async def add_user(state: FSMContext):
     conn.commit()
 
 
+async def delete_user_from_db(user_id_par):
+    with conn.cursor() as cur:
+        cur.execute('DELETE FROM car c WHERE id IN (SELECT car_id FROM users WHERE user_id = {})'.format(user_id_par))
+    conn.commit()
+
+
 async def is_admin(user_id_par) -> bool:
     with conn.cursor() as cur:
         cur.execute('select is_admin from users where user_id ={}'.format(user_id_par))

@@ -35,5 +35,13 @@ class LogMiddleware(BaseMiddleware):
                 await registr.get_menu(message, state)
             raise CancelHandler()
 
-        print(handler.__name__)
+        print("Command name:" + handler.__name__)
+        text: str
+        if message.text is None:
+            text = "No text"
+        else:
+            text = "'" + message.text + "'"
+        print(" " + datetime.datetime.now().strftime('[%Y-%m-%d][%H:%M]') + " idUser:" + str(
+            message.from_user.id) + " text:" + text)
+
         # return await handler(event, data)

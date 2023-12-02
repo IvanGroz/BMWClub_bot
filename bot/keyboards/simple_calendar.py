@@ -16,7 +16,7 @@ class SimpleCalendar:
         inline_kb = InlineKeyboardMarkup(row_width=7)
         ignore_callback = simple_calendar_callback.new("IGNORE", year, month, 0)  # for buttons with no answer
         # First row - Month and Year
-        month_name = ["Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
+        month_name = [" ", "Янв", "Фев", "Мар", "Апр", "Май", "Июн", "Июл", "Авг", "Сен", "Окт", "Ноя", "Дек"]
 
         inline_kb.row()
         inline_kb.insert(InlineKeyboardButton(
@@ -44,6 +44,7 @@ class SimpleCalendar:
                 if day == 0:
                     inline_kb.insert(InlineKeyboardButton(" ", callback_data=ignore_callback))
                     continue
+
                 inline_kb.insert(InlineKeyboardButton(
                     str(day), callback_data=simple_calendar_callback.new("DAY", year, month, day)
                 ))

@@ -32,7 +32,7 @@ async def birthday_find_by_fio(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id,
                            'Введите ФИО пользователя, если не знаете Фамилию,'
                            ' то поиск можно вести по имени или отчеству,\n '
-                           '<b>{Нет}[пробел]{Имя}</b> и <b>{Нет}[пробел]{Нет}[пробел]{Отчество}</b>, соответственно',
+                           '<b>{Нет}[пробел]{Имя}</b>\n или \n<b>{Нет}[пробел]{Нет}[пробел]{Отчество}</b>, соответственно',
                            ParseMode.HTML)
     await state.set_state(AdSt.INSERT_USER_FIO_BIRTHDAY)
 

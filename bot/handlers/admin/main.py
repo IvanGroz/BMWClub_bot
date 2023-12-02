@@ -1,3 +1,4 @@
+import logging
 import re
 
 from aiogram import Bot
@@ -101,7 +102,7 @@ async def add_plus_user_link_callback(message: Message, state: FSMContext):
 async def start_create_event(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await state.set_state(CrEv.INSERT_TITLE)
-    await bot.send_message(message.chat.id, 'Введите название грядущего мероприятия (заголовок)')
+    await bot.send_message(message.chat.id, 'Введите название грядущего мероприятия (заголовок)',reply_markup=ReplyKeyboardRemove())
 
 
 async def event_title_input(message: Message, state: FSMContext):
@@ -342,19 +343,24 @@ async def user_info_by_number_plate(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id,
                            'Введите гос.номер в формате А333АА-54 (код-регион), '
                            'но т.к. номера могут быть иностранные, то допускается свободный ввод',
-                           ParseMode.HTML)
+                           ParseMode.HTML, reply_markup=ReplyKeyboardRemove())
     await state.set_state(AdSt.INSERT_USER_PLATE)
 
 
 async def user_info_by_number_plate_input(message: Message, state: FSMContext):
     if message.text == '/main_menu':
         await state.finish()
-    else:
+    else:# Тут нет проверки на гос номер потому что они могут быть иностранные
         bot: Bot = message.bot
+        message.text = message.text.upper()
         user = db.find_user_by_car(message.text)
-        text, file_id = await user_info(user)
-        await bot.send_photo(message.from_user.id, file_id, text,
-                             parse_mode=ParseMode.HTML)  # Тут описание найденного пользователя
+        if user is None:
+            await bot.send_message(message.chat.id, "С таким номером не нашлось к сожалению((")
+            await state.finish()
+        else:
+            text, file_id = await user_info(user)
+            await bot.send_photo(message.from_user.id, file_id, text,
+                                 parse_mode=ParseMode.HTML)  # Тут описание найденного пользователя
 
 
 async def user_info_by_fio(message: Message, state: FSMContext):
@@ -362,7 +368,7 @@ async def user_info_by_fio(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id,
                            'Введите ФИО пользователя, если не знаете Фамилию,'
                            ' то поиск можно вести по имени или отчеству,\n '
-                           '<b>{Нет}[пробел]{Имя}</b> и <b>{Нет}[пробел]{Нет}[пробел]{Отчество}</b>, соответственно',
+                           '<b>{Нет}[пробел]{Имя}</b>\n или \n<b>{Нет}[пробел]{Нет}[пробел]{Отчество}</b>, соответственно',
                            ParseMode.HTML)
     if message.text == 'Редактировать пользователя':
         await state.set_state(AdSt.EDIT_USER)
@@ -412,8 +418,10 @@ async def edit_user_info_by_fio_link_choice(message: Message, state: FSMContext)
                                             "4.Информация о партнерстве\n"
                                             "5.Гос.номер\n\n "
                                             "Отправьте:\n{номер}[пробел]{значение поля} \n\n"
-                                            "Если Вы хотите изменить фото авто, просто отправьте фото"
-                           , parse_mode=ParseMode.HTML)
+                                            "Если Вы хотите изменить фото авто, просто отправьте фото\n\n\n"
+                                            "[!DELETE!] Если хотите удалить пользователя!\n (Будет удален навсегда!) \n\n"
+
+                           , parse_mode=ParseMode.HTML, reply_markup=ReplyKeyboardRemove())
     await bot.delete_message(message.chat.id, message.message_id)
     await state.set_state(AdSt.EDIT_DATA_USER)
 
@@ -464,7 +472,13 @@ async def edit_user_data(message: Message, state: FSMContext):
                     pass
             await state.finish()
         else:
-            await message.answer('Должна быть только одна из цифр выше')
+            if (re.fullmatch(r'!DELETE!', message.text)) is not None:
+                print("DELETE user")
+                await db.delete_user_from_db(user_id)
+                await bot.send_message(message.chat.id, "Пользователь был удален!", parse_mode=ParseMode.HTML)
+                await state.finish()
+            else:
+                await message.answer('Должна быть только одна из цифр выше')
 
 
 async def user_info_by_fio_link_choice(message: Message, state: FSMContext):
@@ -570,7 +584,7 @@ def register_admin_handlers(dp: Dispatcher) -> None:
                                 text='Редактировать пользователя')
 
     # подпункты меню
-    dp.register_message_handler(watch_events, IsAdminOrOwner(), text='Ближайшие мероприятия')
+    dp.register_message_handler(watch_events, IsAdminOrOwner(), text='Все мероприятия (Включая прошедшие)')
     dp.register_message_handler(start_create_event, IsAdminOrOwner(), text='Создать мероприятие')
     dp.register_message_handler(off_events_notif, IsAdminOrOwner(), content_types=['text'],
                                 text='Отключить уведомления')
