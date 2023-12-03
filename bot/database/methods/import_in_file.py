@@ -7,12 +7,12 @@ import bot.database.database as db
 async def get_all_users_info():
     records = await db.any_command("SELECT user_id,surname,first_name,patronymic,"
                                    "birthday,phone_number,about,partner,is_admin,"
-                                   "is_plus_user,c.number_plate,c.car_photo_file_id "
+                                   "is_plus_user,c.number_plate, c.kuzov,c.car_photo_file_id "
                                    "FROM users join car c on c.id = users.car_id")
     columns = (
         "id пользователя", "Фамилия", "Имя", "Отчество",
         "День рождения", "Номер телефона", "Род деятельности",
-        "Информация о партнере", "админ", "пользователь+", "Гос.номер", "file_id авто")
+        "Информация о партнере", "админ", "пользователь+", "Гос.номер", "кузов", "file_id авто" )
     file_name = 'all_users_data.xlsx'
     workbook = Workbook()
     workbook.save(file_name)
@@ -28,8 +28,9 @@ async def get_all_users_info():
     worksheet.column_dimensions['H'].width = 40
     worksheet.column_dimensions['I'].width = 10
     worksheet.column_dimensions['J'].width = 15
-    worksheet.column_dimensions['K'].width = 10
-    worksheet.column_dimensions['L'].width = 85
+    worksheet.column_dimensions['K'].width = 15
+    worksheet.column_dimensions['L'].width = 15
+    worksheet.column_dimensions['M'].width = 85
     worksheet.append(columns)
     for row in records:
         worksheet.append(row)

@@ -176,6 +176,16 @@ async def car_photo_input(message: Message, state: FSMContext):
     async with state.proxy() as data:
         data['photo'] = message.photo[0].file_id  # Т.к. все файлы хранятся в телеграме, то найти их можно по file_id
     await message.answer('Фото загружено!')
+    await bot.send_message(message.chat.id, st.input_car_kuzov)
+    await state.set_state(RegState.INSERT_CAR_KUZOV_MODEL)
+
+
+async def car_kuzov_model_input(message: Message, state: FSMContext):
+    if await permanent_menu(message, state):
+        return
+    bot: Bot = message.bot
+    async with state.proxy() as data:
+        data['kuzov'] = message.text
     await bot.send_photo(message.chat.id, photo=InputFile('bot//res//number_plate.png'),
                          caption=st.input_car_number_plate, reply_markup=await kb.car_number_plate_non_rus())
     await state.set_state(RegState.INSERT_NUMBER_PLATE)
@@ -298,6 +308,8 @@ def register_registration_handlers(dp: Dispatcher) -> None:
                                 state=RegState.INSERT_ABOUT)
     dp.register_message_handler(car_photo_input, IsNotRegistered(), content_types=[ContentType.PHOTO],
                                 state=RegState.INSERT_CAR_PHOTO)
+    dp.register_message_handler(car_kuzov_model_input, IsNotRegistered(), content_types=[ContentType.TEXT],
+                                state=RegState.INSERT_CAR_KUZOV_MODEL)
     dp.register_message_handler(number_plate_input, IsNotRegistered(), content_types=[ContentType.TEXT],
                                 state=RegState.INSERT_NUMBER_PLATE)
     dp.register_message_handler(non_russian_plate_input, IsNotRegistered(), content_types=[ContentType.TEXT],

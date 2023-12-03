@@ -102,7 +102,8 @@ async def add_plus_user_link_callback(message: Message, state: FSMContext):
 async def start_create_event(message: Message, state: FSMContext):
     bot: Bot = message.bot
     await state.set_state(CrEv.INSERT_TITLE)
-    await bot.send_message(message.chat.id, 'Введите название грядущего мероприятия (заголовок)',reply_markup=ReplyKeyboardRemove())
+    await bot.send_message(message.chat.id, 'Введите название грядущего мероприятия (заголовок)',
+                           reply_markup=ReplyKeyboardRemove())
 
 
 async def event_title_input(message: Message, state: FSMContext):
@@ -340,6 +341,7 @@ async def users_info_menu(message: Message, state: FSMContext):
 
 async def user_info_by_number_plate(message: Message, state: FSMContext):
     bot: Bot = message.bot
+
     await bot.send_message(message.from_user.id,
                            'Введите гос.номер в формате А333АА-54 (код-регион), '
                            'но т.к. номера могут быть иностранные, то допускается свободный ввод',
@@ -350,7 +352,7 @@ async def user_info_by_number_plate(message: Message, state: FSMContext):
 async def user_info_by_number_plate_input(message: Message, state: FSMContext):
     if message.text == '/main_menu':
         await state.finish()
-    else:# Тут нет проверки на гос номер потому что они могут быть иностранные
+    else:  # Тут нет проверки на гос номер потому что они могут быть иностранные
         bot: Bot = message.bot
         message.text = message.text.upper()
         user = db.find_user_by_car(message.text)
@@ -400,13 +402,13 @@ async def user_info_by_fio_input(message: Message, state: FSMContext):
 
 async def edit_user_info_by_fio_link_choice(message: Message, state: FSMContext):
     bot: Bot = message.bot
-    user_id = message.text[18:]
+    user_id = message.text[18:]  # 18 это длинна команды
     user = await db.get_user_by_id(user_id)
     async with state.proxy() as data:
         list_users_mes = data['list_users_msg']
         await bot.delete_message(list_users_mes.chat.id, list_users_mes.message_id)
         data['edit_user_id'] = user_id
-    text, file_id = await user_info(user)
+    text, file_id = await user_info(user)  # Внутри функции разделение вывода на инфу о пользователе и file_id фото авто
     try:
         await bot.send_photo(message.from_user.id, file_id, text, parse_mode=ParseMode.HTML)
     except BadRequest:
@@ -417,11 +419,11 @@ async def edit_user_info_by_fio_link_choice(message: Message, state: FSMContext)
                                             "2.Номер телефона\n"
                                             "3.Род деятельности\n"
                                             "4.Информация о партнерстве\n"
-                                            "5.Гос.номер\n\n "
+                                            "5.Гос.номер\n"
+                                            "6.Кузов\n\n "
                                             "Отправьте:\n{номер}[пробел]{значение поля} \n\n"
                                             "Если Вы хотите изменить фото авто, просто отправьте фото\n\n\n"
                                             "[!DELETE!] Если хотите удалить пользователя!\n (Будет удален навсегда!) \n\n"
-
                            , parse_mode=ParseMode.HTML, reply_markup=ReplyKeyboardRemove())
     await bot.delete_message(message.chat.id, message.message_id)
     await state.set_state(AdSt.EDIT_DATA_USER)
@@ -439,7 +441,7 @@ async def edit_user_data(message: Message, state: FSMContext):
                                                                                               user_id))
         await message.answer('Фото машины изменено')
     else:
-        if re.fullmatch(r'[1-5] .*', message.text) is not None:
+        if re.fullmatch(r'[1-6] .*', message.text) is not None:
             left, right = message.text.split(maxsplit=1)
             match left:
                 case '1':  # Дата рождения
@@ -470,6 +472,12 @@ async def edit_user_data(message: Message, state: FSMContext):
                                          " WHERE id = "
                                          "(select car_id from users where user_id={})".format(right, user_id))
                     await message.answer('Гос.номер исправлен')
+
+                case '6':  # Гос.номер
+                    await db.any_command("UPDATE car SET kuzov = '{}'"
+                                         " WHERE id = "
+                                         "(select car_id from users where user_id={})".format(right, user_id))
+                    await message.answer('Кузов изменен')
                     pass
             await state.finish()
         else:

@@ -1,0 +1,2 @@
+BMW_bot\venv\Scripts\python.exe BMW_bot\run.py
+cmd command to launch bmw bot

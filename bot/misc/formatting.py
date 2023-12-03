@@ -42,7 +42,7 @@ async def format_founded_users(users: list, command: str):
     if len(users) == 0:
         text += '\nПуст'
     for user in users:
-        user_link = '[{} {} {}](tg://user?id={})'.format(user[1],
+        user_link = "[{} {} {}](tg://user?id={})".format(user[1],
                                                          user[2],
                                                          user[3],
                                                          user[0])
@@ -82,6 +82,6 @@ async def user_info(user):
                 "\nАдминистратор:{}\n" \
                 "\nПользователь с расширенным функционалом:{}\n" \
                 "\nГос.номер: {}\n" \
-                "".format(user[0], user[1], user[2], user[3], birthday.strftime('%Y-%m-%d'),
-                          user[5], user[6], user[7], user[8], user[9], user[10])
-    return text, user[11]  # Описание пользователя и фото авто
+                "\nКузов:{}\n".format(user[0], user[1], user[2], user[3], birthday.strftime('%Y-%m-%d'),
+                                      user[5], user[6], user[7], user[8], user[9], user[10], user[11])
+    return text, user[12]  # Описание пользователя и фото авто

@@ -10,6 +10,7 @@ class RegisterUser(StatesGroup):
     INSERT_PATRONYMIC: Final = State()  # Состояние при котором принимается Отчество
     INSERT_ABOUT: Final = State()  # Состояние при котором принимается о том чем занимается пользователь
     INSERT_CAR_PHOTO: Final = State()  # Состояние при котором принимается Фото Авто
+    INSERT_CAR_KUZOV_MODEL: Final = State()  # Состояние при котором принимается модель кузова авто
     INSERT_NUMBER_PLATE: Final = State()  # Состояние при котором принимается Гос. Номер Авто
     INSERT_NON_RUS_PLATE: Final = State()  # Состояние при котором принимается иностранный Гос. Номер Авто
     INSERT_PARTNER_BUSINESS: Final = State()  # Состояние при котором принимается Информация о партнерстве

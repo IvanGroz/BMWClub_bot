@@ -21,7 +21,7 @@ def start():
 async def add_user(state: FSMContext):
     async with state.proxy() as data:
         birthday: datetime.datetime = data['birthday']
-        sql_insert = "select insert_user_data({},'{}','{}','{}','{}','{}','{}','{}','{}','{}')". \
+        sql_insert = "select insert_user_data({},'{}','{}','{}','{}','{}','{}','{}','{}','{}','{}')". \
             format(data['user_id'],
                    data['name'],
                    data['surname'],
@@ -29,6 +29,7 @@ async def add_user(state: FSMContext):
                    birthday.strftime('%Y-%m-%d'),
                    data['about'],
                    data['photo'],
+                   data['kuzov'],
                    data['number_plate'],
                    data['phone_number'],
                    data['partner'])
@@ -72,8 +73,26 @@ async def get_user_by_id(user_id):
     with conn.cursor() as cur:
         cur.execute('SELECT user_id,surname, first_name, patronymic, birthday, '
                     'phone_number,about,partner,is_admin, is_plus_user,'
-                    ' c.number_plate, c.car_photo_file_id FROM users join car c on c.id = users.car_id'
+                    ' c.number_plate, c.kuzov, c.car_photo_file_id  FROM users join car c on c.id = users.car_id'
                     ' where user_id = {}'.format(user_id))
+        return cur.fetchone()
+
+
+def find_user_by_car(number_plate: str):
+    with conn.cursor() as cur:
+        cur.execute('SELECT user_id,surname, first_name, patronymic, birthday, '
+                    'phone_number,about,partner,is_admin, is_plus_user,'
+                    ' c.number_plate,c.kuzov, c.car_photo_file_id   FROM users join car c on c.id = users.car_id '
+                    " WHERE number_plate = '{}'".format(number_plate))
+        return cur.fetchone()
+
+
+def find_user_by_kuzov(kuzov: str):
+    with conn.cursor() as cur:
+        cur.execute('SELECT user_id,surname, first_name, patronymic, birthday, '
+                    'phone_number,about,partner,is_admin, is_plus_user,'
+                    ' c.number_plate,c.kuzov, c.car_photo_file_id   FROM users join car c on c.id = users.car_id '
+                    " WHERE c.kuzov LIKE '%{}%'".format(kuzov))
         return cur.fetchone()
 
 
@@ -153,20 +172,11 @@ def find_user(data_fio: list):
             if data_fio[1].lower() != 'нет' and data_fio[0].lower() != 'нет':
                 sql_command += " and "
             sql_command += "patronymic = '{}'".format(data_fio[2])
-    else:
+    if data_fio[0].lower() == 'нет' and len(data_fio) == 1:
         sql_command = "select user_id, surname, first_name, patronymic from users"
     with conn.cursor() as cur:
         cur.execute(sql_command)
         return cur.fetchall()
-
-
-def find_user_by_car(number_plate: str):
-    with conn.cursor() as cur:
-        cur.execute('SELECT user_id,surname, first_name, patronymic, birthday, '
-                    'phone_number,about,partner,is_admin, is_plus_user,'
-                    ' c.number_plate, c.car_photo_file_id FROM users join car c on c.id = users.car_id '
-                    " WHERE number_plate = '{}'".format(number_plate))
-        return cur.fetchone()
 
 
 def find_admins():
