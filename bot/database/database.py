@@ -89,11 +89,10 @@ def find_user_by_car(number_plate: str):
 
 def find_user_by_kuzov(kuzov: str):
     with conn.cursor() as cur:
-        cur.execute('SELECT user_id,surname, first_name, patronymic, birthday, '
-                    'phone_number,about,partner,is_admin, is_plus_user,'
-                    ' c.number_plate,c.kuzov, c.car_photo_file_id   FROM users join car c on c.id = users.car_id '
+        cur.execute('SELECT user_id, surname, first_name, patronymic ,c.kuzov'
+                    ' FROM users join car c on c.id = users.car_id '
                     " WHERE c.kuzov LIKE '%{}%'".format(kuzov))
-        return cur.fetchone()
+        return cur.fetchall()
 
 
 async def get_users_birthday(days: int) -> list:

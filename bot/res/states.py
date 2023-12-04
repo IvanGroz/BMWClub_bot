@@ -45,6 +45,7 @@ class AdminStates(StatesGroup):
     INSERT_BROADCAST: Final = State()  # Ввод рассылочного сообщения
     INSERT_USER_FIO: Final = State()  # Ввод ФИО искомого пользователя
     INSERT_USER_PLATE: Final = State()
+    INSERT_USER_KUZOV: Final = State()
     CHOICE_USER_INFO: Final = State()
     EDIT_USER: Final = State()
     CHOICE_USER_EDIT: Final = State()

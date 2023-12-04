@@ -29,7 +29,7 @@ async def choice_new_plus_user_add(message: Message, state: FSMContext):
     bot: Bot = message.bot
     msg = await message.answer('Введите Фамилию Имя Отчество, того человека которого хотите назначить пользователем+ '
                                '(Вводить нужно именно в указанном выше порядке в случае если не известна,'
-                               ' например , фамилия, то пишите: Нет Иван Иванов и т.п.)', ParseMode.HTML)
+                               ' например , фамилия, то пишите: Нет Иван Иванович и т.п.)', ParseMode.HTML)
     async with state.proxy() as data:
         data['info_input_msg_id'] = msg.message_id
     await state.set_state(UpPe.INSERT_USER_PLUS_FIO)
@@ -339,6 +339,32 @@ async def users_info_menu(message: Message, state: FSMContext):
     await bot.send_message(message.from_user.id, "Выберите пункт меню", reply_markup=await kb.users_info_menu())
 
 
+async def user_info_by_kuzov(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+
+    await bot.send_message(message.from_user.id,
+                           'Введите номер кузова',
+                           ParseMode.HTML, reply_markup=ReplyKeyboardRemove())
+    await state.set_state(AdSt.INSERT_USER_KUZOV)
+
+
+async def user_info_by_kuzov_input(message: Message, state: FSMContext):
+    bot: Bot = message.bot
+    users = db.find_user_by_kuzov(message.text)
+    global founded_users_dict
+    # sm = await state.get_state()
+    if await state.get_state() == 'AdminStates:INSERT_USER_KUZOV':
+        founded = await format_founded_users_with_kuzov(users, '/get\_user\_info\_id')
+        founded_users_dict = founded[1]
+        await state.set_state(AdSt.CHOICE_USER_INFO)
+    bot_me = await bot.send_message(message.from_user.id, founded[0], ParseMode.MARKDOWN_V2)
+
+    async with state.proxy() as data:
+        data['list_users_msg'] = bot_me
+    if len(founded_users_dict) == 0:
+        await state.finish()
+
+
 async def user_info_by_number_plate(message: Message, state: FSMContext):
     bot: Bot = message.bot
 
@@ -375,7 +401,7 @@ async def user_info_by_fio(message: Message, state: FSMContext):
                            ParseMode.HTML)
     if message.text == 'Редактировать пользователя':
         await state.set_state(AdSt.EDIT_USER)
-    if message.text == "Найти пользователя по ФИО":
+    if message.text == "Найти по ФИО":
         await state.set_state(AdSt.INSERT_USER_FIO)
 
 
@@ -547,6 +573,7 @@ def register_admin_handlers(dp: Dispatcher) -> None:
                                 content_types=['text', 'photo'])
     dp.register_message_handler(user_info_by_fio_input, IsAdminOrOwner(), state=AdSt.INSERT_USER_FIO)
     dp.register_message_handler(user_info_by_number_plate_input, IsAdminOrOwner(), state=AdSt.INSERT_USER_PLATE)
+    dp.register_message_handler(user_info_by_kuzov_input, IsAdminOrOwner(), state=AdSt.INSERT_USER_KUZOV)
     dp.register_message_handler(user_info_by_fio_link_choice, IsAdminOrOwner(),
                                 filters.RegexpCommandsFilter(regexp_commands=['get_user_info_id([0-9]*)']),
                                 state=AdSt.CHOICE_USER_INFO)
@@ -601,9 +628,11 @@ def register_admin_handlers(dp: Dispatcher) -> None:
                                 text='Отключить уведомления')
     dp.register_message_handler(on_events_notif, IsAdminOrOwner(), content_types=['text'], text='Включить уведомления')
     dp.register_message_handler(user_info_by_fio, IsAdminOrOwner(), content_types=['text'],
-                                text='Найти пользователя по ФИО')
+                                text='Найти по ФИО')
     dp.register_message_handler(user_info_by_number_plate, IsAdminOrOwner(), content_types=['text'],
-                                text='Найти пользователя по Гос.Номеру')
+                                text='Найти по Гос.Номеру')
+    dp.register_message_handler(user_info_by_kuzov, IsAdminOrOwner(), content_types=['text'],
+                                text='Найти по кузову')
     dp.register_message_handler(all_users_info, IsAdminOrOwner(), content_types=['text'],
                                 text='Получить данные о всех пользователях')
 

@@ -64,11 +64,15 @@ async def event_menu(notif_on) -> ReplyKeyboardMarkup:
 async def users_info_menu() -> ReplyKeyboardMarkup:
     kb = ReplyKeyboardMarkup(resize_keyboard=True)
     kb.row(
-        KeyboardButton('Найти пользователя по Гос.Номеру'),
+        KeyboardButton('Найти по Гос.Номеру'),
     )
     kb.row(
 
-        KeyboardButton('Найти пользователя по ФИО')
+        KeyboardButton('Найти по кузову')
+    )
+    kb.row(
+
+        KeyboardButton('Найти по ФИО')
     )
     kb.row(KeyboardButton('Получить данные о всех пользователях'))
     return kb

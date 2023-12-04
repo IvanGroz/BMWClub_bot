@@ -51,6 +51,22 @@ async def format_founded_users(users: list, command: str):
     return text, users_fio_id
 
 
+async def format_founded_users_with_kuzov(users: list, command: str):
+    text: str = 'Список найденных пользователей:'
+    users_fio_id: dict = {}
+    if len(users) == 0:
+        text += '\nПуст'
+    for user in users:
+        user_link = "[{} {} {}](tg://user?id={}) кузов:\[{}\]".format(user[1],
+                                                                  user[2],
+                                                                  user[3],
+                                                                  user[0],
+                                                                  user[4])
+        text += '\n' + user_link + ' \n\-\> {}{} \<\-\n\n'.format(command, user[0])
+        users_fio_id[str(user[0])] = user_link
+    return text, users_fio_id
+
+
 async def format_event(title: str, date: datetime.datetime, time: datetime.time | str, location: str,
                        description: str) -> str:
     text: str = title + '\n'

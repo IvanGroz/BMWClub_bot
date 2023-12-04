@@ -14,7 +14,7 @@ async def choice_new_admin_add(message: Message, state: FSMContext):
     bot: Bot = message.bot
     msg = await message.answer('Введите Фамилию Имя Отчество, того человека которого хотите назначить админом '
                                '(Вводить нужно именно в указанном выше порядке в случае если не известна,'
-                               ' например , фамилия, то пишите: Нет Иван Иванов и т.п.)', ParseMode.HTML)
+                               ' например , фамилия, то пишите: Нет Иван Иванович и т.п.)', ParseMode.HTML)
     async with state.proxy() as data:
         data['info_input_msg_id'] = msg.message_id
     await state.set_state(UpPe.INSERT_ADMIN_FIO)
